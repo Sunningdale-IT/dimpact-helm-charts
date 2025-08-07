@@ -11,16 +11,17 @@ NC='\033[0m' # No Color
 # Auto-detect git repository information
 GIT_REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
 if [[ "$GIT_REMOTE_URL" =~ github\.com[:/]([^/]+)/([^/.]+) ]]; then
-    GIT_OWNER="${BASH_REMATCH[1]}"
-    GIT_REPO="${BASH_REMATCH[2]}"
-    DEFAULT_REGISTRY_URL="oci://ghcr.io/${GIT_OWNER}"
+  GIT_OWNER="${BASH_REMATCH[1]}"
+  GIT_REPO="${BASH_REMATCH[2]}"
+  # Convert owner to lowercase for OCI registry URL
+  DEFAULT_REGISTRY_URL="oci://ghcr.io/$(echo "${GIT_OWNER}" | tr '[:upper:]' '[:lower:]')"
 else
     DEFAULT_REGISTRY_URL=""
 fi
 
 # Default values
 CHART_NAME="podiumd"
-CHART_PATH="charts/${CHART_NAME}"
+CHART_PATH="charts/podiumd"
 DEV_MODE=false
 REGISTRY_URL=""
 REGISTRY_USERNAME="jimleitch01"
@@ -105,21 +106,41 @@ fi
 # Function to add dependency repositories
 add_dependency_repos() {
     echo -e "${YELLOW}📦 Adding dependency chart repositories...${NC}"
-    
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-    helm repo add maykinmedia https://maykinmedia.github.io/charts  
-    helm repo add opentelemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-    helm repo add wiremind https://wiremind.github.io/wiremind-helm-charts
-    helm repo add dimpact https://Dimpact-Samenwerking.github.io/helm-charts
-    helm repo add elastic https://helm.elastic.co
-    helm repo add kiss-frontend https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/KISS-frontend/main/helm
-    helm repo add kiss-adapter https://raw.githubusercontent.com/ICATT-Menselijk-Digitaal/podiumd-adapter/main/helm  
-    helm repo add kiss-elastic https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/.github/main/docs/scripts/elastic
-    helm repo add zac https://infonl.github.io/dimpact-zaakafhandelcomponent/
-    helm repo add openshift https://charts.openshift.io
-    helm repo add grafana https://grafana.github.io/helm-charts
-    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-    
+
+
+
+
+
+    # List of required repositories and their URLs (portable array)
+    REPO_LIST=(
+      "bitnami=https://charts.bitnami.com/bitnami"
+      "maykinmedia=https://maykinmedia.github.io/charts"
+      "opentelemetry=https://open-telemetry.github.io/opentelemetry-helm-charts"
+      "wiremind=https://wiremind.github.io/wiremind-helm-charts"
+      "dimpact=https://Dimpact-Samenwerking.github.io/helm-charts"
+      "elastic=https://helm.elastic.co"
+      "kiss-frontend=https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/KISS-frontend/main/helm"
+      "kiss-adapter=https://raw.githubusercontent.com/ICATT-Menselijk-Digitaal/podiumd-adapter/main/helm"
+      "kiss-elastic=https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/.github/main/docs/scripts/elastic"
+      "zac=https://infonl.github.io/dimpact-zaakafhandelcomponent/"
+      "openshift=https://charts.openshift.io"
+      "grafana=https://grafana.github.io/helm-charts"
+      "prometheus-community=https://prometheus-community.github.io/helm-charts"
+    )
+
+    # Get list of already added repos
+    EXISTING_REPOS=$(helm repo list | awk 'NR>1 {print $1}')
+
+    for entry in "${REPO_LIST[@]}"; do
+      repo="${entry%%=*}"
+      url="${entry#*=}"
+      if echo "$EXISTING_REPOS" | grep -qx "$repo"; then
+        echo -e "${YELLOW}🔎 Helm repo '$repo' already exists, skipping...${NC}"
+      else
+        helm repo add "$repo" "$url"
+      fi
+    done
+
     echo -e "${GREEN}✅ Dependency repositories added successfully${NC}"
 }
 
@@ -192,8 +213,9 @@ push_chart_dev() {
     
     echo -e "${YELLOW}🔐 Logging into registry...${NC}"
     
-    # Login to registry
-    if echo "$REGISTRY_PASSWORD" | helm registry login "$REGISTRY_URL" --username "$REGISTRY_USERNAME" --password-stdin; then
+    # Extract registry hostname for login (strip oci:// and any path)
+    LOGIN_HOST=$(echo "$REGISTRY_URL" | sed -E 's|^oci://||; s|/.*$||')
+    if echo "$REGISTRY_PASSWORD" | helm registry login "$LOGIN_HOST" --username "$REGISTRY_USERNAME" --password-stdin; then
         echo -e "${GREEN}✅ Login Succeeded${NC}"
     else
         echo -e "${RED}❌ Registry login failed${NC}"
@@ -201,17 +223,31 @@ push_chart_dev() {
     fi
     
     # Push the chart
+    # set -x
     echo -e "${YELLOW}🚀 Pushing chart to development registry...${NC}"
     CHART_VERSION=$(helm show chart "$CHART_PATH" | grep '^version:' | awk '{print $2}')
     PACKAGE_FILE="${CHART_NAME}-${CHART_VERSION}.tgz"
     
-    # Construct the full registry path
-    if [[ "$REGISTRY_URL" == oci://* ]]; then
-        FULL_REGISTRY_PATH="$REGISTRY_URL"
+    # Always use the canonical GitHub OCI path if not explicitly overridden
+    if [[ "$LOGIN_HOST" == "ghcr.io" ]]; then
+        LOWER_OWNER=$(echo "$GIT_OWNER" | tr '[:upper:]' '[:lower:]')
+        LOWER_REPO=$(echo "$GIT_REPO" | tr '[:upper:]' '[:lower:]')
+        FULL_REGISTRY_PATH="oci://ghcr.io/$LOWER_OWNER/$LOWER_REPO/$CHART_NAME"
     else
-        FULL_REGISTRY_PATH="oci://$REGISTRY_URL"
+        # Remove trailing slash if present
+        BASE_PATH="${REGISTRY_URL%/}"
+        # Prepend oci:// if missing
+        if [[ "$BASE_PATH" != oci://* ]]; then
+            BASE_PATH="oci://$BASE_PATH"
+        fi
+        # Append chart name if not present
+        if [[ "$BASE_PATH" != */$CHART_NAME ]]; then
+            FULL_REGISTRY_PATH="$BASE_PATH/$CHART_NAME"
+        else
+            FULL_REGISTRY_PATH="$BASE_PATH"
+        fi
     fi
-    
+
     if helm push "$PACKAGE_FILE" "$FULL_REGISTRY_PATH"; then
         echo -e "${GREEN}✅ Chart pushed successfully to $FULL_REGISTRY_PATH${NC}"
     else
