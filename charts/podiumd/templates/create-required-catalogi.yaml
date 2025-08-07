@@ -5,7 +5,7 @@ kind: ConfigMap
 metadata:
   name: create-required-catalogi-configmap
   labels:
-    {{- include "openzaak.labels" . | nindent 4 }}
+    {{- include "podiumd.labels" . | nindent 4 }}
 data:
   CLIENT_ID: {{ .Values.openzaak.create_required_catalogi_job.client_id | quote }}
   OPENZAAK_URL: {{ .Values.openzaak.configuration.oidcUrl | quote }}
@@ -392,7 +392,7 @@ kind: Job
 metadata:
   name: create-required-catalogi-job
   labels:
-    {{- include "openzaak.configLabels" . | nindent 4 }}
+    {{- include "podiumd.labels" . | nindent 4 }}
 spec:
   ttlSecondsAfterFinished: 600
   template:

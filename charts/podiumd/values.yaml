@@ -1,4 +1,16 @@
 ---
+# Service account configuration
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "PLACEHOLDER"
+  # Whether to auto mount service account tokens
+  automount: false
+
 global:
   configuration:
     enabled: true
@@ -138,6 +150,8 @@ infinispan:
         storageClassName: podiumd-standard
     security:
       secretName: ispn-generated-secret
+      monitor:
+        secret: "PLACEHOLDER"
       batch: |
         credentials add keystore -c password -p secret --path="internal-credentials.pfx"
         user create keycloak -p yGzED95riA8hx5O2FID56aYI97UMSdbA -g deployer
@@ -151,6 +165,8 @@ openzaak:
     client_id: integratieteam
     secret: "8IDlsFxbtqauJKwS4PI"
     enabled: true
+    e2eTestZaaktype:
+      create: "PLACEHOLDER"
   configuration:
     enabled: true
     oidcUrl: "https://ontw-openzaak.dimpact.info.nl"
@@ -290,6 +306,11 @@ openzaak:
     repository: acrprodmgmt.azurecr.io/openzaak
   nodeSelector:
     agentpool: userpool
+  persistence:
+    existingClaim: "PLACEHOLDER"
+    size: "PLACEHOLDER"
+  persistentVolume:
+    volumeAttributeShareName: "PLACEHOLDER"
   nginx:
     image:
       repository: acrprodmgmt.azurecr.io/nginx
@@ -457,6 +478,11 @@ opennotificaties:
     repository: acrprodmgmt.azurecr.io/opennotificaties
   nodeSelector:
     agentpool: userpool
+  persistence:
+    existingClaim: "PLACEHOLDER"
+    size: "PLACEHOLDER"
+  persistentVolume:
+    volumeAttributeShareName: "PLACEHOLDER"
   rabbitmq:
     auth:
       password: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
@@ -654,6 +680,11 @@ objecten:
     repository: acrprodmgmt.azurecr.io/objecten
   nodeSelector:
     agentpool: userpool
+  persistence:
+    existingClaim: "PLACEHOLDER"
+    size: "PLACEHOLDER"
+  persistentVolume:
+    volumeAttributeShareName: "PLACEHOLDER"
   worker:
     livenessProbe:
       exec:
@@ -987,6 +1018,11 @@ openklant:
     repository: acrprodmgmt.azurecr.io/openklant
   nodeSelector:
     agentpool: userpool
+  persistence:
+    existingClaim: "PLACEHOLDER"
+    size: "PLACEHOLDER"
+  persistentVolume:
+    volumeAttributeShareName: "PLACEHOLDER"
   nginx:
     image:
       repository: acrprodmgmt.azurecr.io/nginx
@@ -1142,6 +1178,11 @@ openformulieren:
     repository: acrprodmgmt.azurecr.io/openformulieren
   nodeSelector:
     agentpool: userpool
+  persistence:
+    existingClaim: "PLACEHOLDER"
+    size: "PLACEHOLDER"
+  persistentVolume:
+    volumeAttributeShareName: "PLACEHOLDER"
   nginx:
     image:
       repository: acrprodmgmt.azurecr.io/nginx
@@ -1293,6 +1334,11 @@ openinwoner:
     repository: acrprodmgmt.azurecr.io/openinwoner
   nodeSelector:
     agentpool: userpool
+  persistence:
+    existingClaim: "PLACEHOLDER"
+    size: "PLACEHOLDER"
+  persistentVolume:
+    volumeAttributeShareName: "PLACEHOLDER"
   nginx:
     image:
       repository: acrprodmgmt.azurecr.io/nginx
@@ -1609,6 +1655,27 @@ apiproxy:
     tag: stable
   nodeSelector:
     agentpool: userpool
+  service:
+    port: "PLACEHOLDER"
+  resources:
+    limits:
+      cpu: "PLACEHOLDER"
+      memory: "PLACEHOLDER"
+    requests:
+      cpu: "PLACEHOLDER"
+      memory: "PLACEHOLDER"
+  livenessProbe:
+    initialDelaySeconds: "PLACEHOLDER"
+    periodSeconds: "PLACEHOLDER"
+    timeoutSeconds: "PLACEHOLDER"
+    failureThreshold: "PLACEHOLDER"
+    successThreshold: "PLACEHOLDER"
+  readinessProbe:
+    initialDelaySeconds: "PLACEHOLDER"
+    periodSeconds: "PLACEHOLDER"
+    timeoutSeconds: "PLACEHOLDER"
+    failureThreshold: "PLACEHOLDER"
+    successThreshold: "PLACEHOLDER"
   locations:
     commonsettings: &commonLocation
       hostHeader: "api.kvk.nl"
