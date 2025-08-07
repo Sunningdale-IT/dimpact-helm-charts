@@ -8,9 +8,8 @@ Always reference these instructions first and fallback to search or bash command
 
 ### Bootstrap and Basic Validation
 - Ensure Helm is installed: `helm version` (requires v3.x+)
-- Lint individual charts: `helm lint charts/<chart-name>` -- takes < 1 second per chart. 
-- Lint all working charts: `helm lint charts/brp-personen-mock charts/kiss charts/flowable-rest charts/flowable-ui` -- takes < 5 seconds total. **NEVER CANCEL**.
-- Template individual charts: `helm template test charts/<chart-name> --dry-run` -- takes < 1 second per chart.
+- Lint podiumd chart: `helm lint charts/podiumd` -- primary chart of interest 
+- Template podiumd chart: `helm template test charts/podiumd --dry-run` -- verify podiumd templates
 
 ### Working with External Dependencies
 - External Helm repositories are accessible and can be added using `helm repo add` commands
@@ -22,40 +21,27 @@ Always reference these instructions first and fallback to search or bash command
 
 ### Chart Structure and Components
 
-#### Main Charts Available:
+#### Main Chart of Interest:
 - **podiumd**: Main comprehensive platform chart (COMPLEX - has 13+ external dependencies) ⚠️ 
-- **kiss**: Contact management system (Klantinteractie-Servicesysteem) ✅ Full functionality
-- **brp-personen-mock**: BRP (Dutch population register) mock service ✅ Full functionality
-- **monitoring-logging**: Monitoring and logging stack ✅ Full functionality with dependencies
-- **vngreferentielijsten**: VNG reference lists ⚠️ May have template errors
-- **beproeving**: Development/testing chart ✅ Full functionality with dependencies
-- **flowable-rest**, **flowable-ui**: Flowable workflow components ✅ Full functionality
+
+#### Other Charts (Reference Only):
+- **kiss**: Contact management system (Klantinteractie-Servicesysteem)
+- **brp-personen-mock**: BRP (Dutch population register) mock service
+- **monitoring-logging**: Monitoring and logging stack
+- **vngreferentielijsten**: VNG reference lists
+- **beproeving**: Development/testing chart
+- **flowable-rest**, **flowable-ui**: Flowable workflow components
 
 #### Chart Validation Commands:
 ```bash
-# Lint charts (all should work with external dependencies available)
-helm lint charts/brp-personen-mock    # ✅ Works - < 1 second
-helm lint charts/kiss                 # ✅ Works - < 1 second  
-helm lint charts/flowable-rest        # ✅ Works - < 1 second
-helm lint charts/flowable-ui          # ✅ Works - < 1 second
-helm lint charts/beproeving           # ✅ Works - < 1 second
-helm lint charts/monitoring-logging   # ✅ Works - < 1 second
+# Primary focus: podiumd chart
+helm lint charts/podiumd                               # ⚠️ May have template errors, complex dependencies
+helm template test charts/podiumd --dry-run            # ⚠️ May have template errors
+helm dependency update charts/podiumd                  # ✅ Works - can reach external repos
 
-# Template charts (can generate valid YAML with dependencies)
-helm template test charts/brp-personen-mock --dry-run    # ✅ Works - < 1 second
-helm template test charts/kiss --dry-run                 # ✅ Works - < 1 second
-helm template test charts/flowable-rest --dry-run        # ✅ Works - < 1 second
-helm template test charts/flowable-ui --dry-run          # ✅ Works - < 1 second
-helm template test charts/beproeving --dry-run           # ✅ Works with dependencies
-helm template test charts/monitoring-logging --dry-run   # ✅ Works with dependencies
-
-# Charts that may still have issues:
-helm lint charts/podiumd              # ⚠️ May still have template errors despite available dependencies
-helm lint charts/vngreferentielijsten # ⚠️ May have template error (nil pointer for database.password)
-helm template test charts/vngreferentielijsten --dry-run # ⚠️ May have template errors
-
-# Dependency management now works:
-helm dependency update charts/podiumd # ✅ Works - can reach external repos
+# Dependency management for podiumd:
+helm dependency update charts/podiumd                  # Download external dependencies
+helm dependency list charts/podiumd                    # List current dependencies
 ```
 
 ### GitHub Workflows and CI/CD
@@ -85,14 +71,14 @@ helm repo add zgw-office-addin https://infonl.github.io/zgw-office-addin
 
 ## Validation Scenarios
 
-### ALWAYS Test These After Making Changes:
-1. **Chart Linting**: `helm lint charts/<modified-chart>` -- verify no linting errors
-2. **Template Generation**: `helm template test charts/<modified-chart> --dry-run` -- verify valid Kubernetes YAML
+### ALWAYS Test These After Making Changes to podiumd:
+1. **Chart Linting**: `helm lint charts/podiumd` -- verify no linting errors
+2. **Template Generation**: `helm template test charts/podiumd --dry-run` -- verify valid Kubernetes YAML
 3. **Syntax Validation**: Check YAML files are valid using your editor's syntax highlighting
 
-### DO NOT Test These (they may still have template errors):
+### DO NOT Test These (may still have template errors):
 - Charts with known template issues (vngreferentielijsten)
-- Complex charts that may need dependency updates first (podiumd)
+- Other charts not currently of interest
 
 ## Common Tasks
 
@@ -103,11 +89,11 @@ helm repo add zgw-office-addin https://infonl.github.io/zgw-office-addin
 │   ├── workflows/         # CI/CD workflows
 │   └── CODEOWNERS        # Code ownership definitions
 ├── charts/               # Helm charts directory
-│   ├── podiumd/         # Main platform chart
-│   ├── kiss/            # Contact management
-│   ├── brp-personen-mock/
-│   ├── monitoring-logging/
-│   └── vngreferentielijsten/
+│   ├── podiumd/         # Main platform chart (PRIMARY FOCUS)
+│   ├── kiss/            # Contact management (reference only)
+│   ├── brp-personen-mock/ # (reference only)
+│   ├── monitoring-logging/ # (reference only)
+│   └── vngreferentielijsten/ # (reference only)
 ├── docs/                # Documentation
 │   └── podiumd/        # PodiumD specific docs
 ├── .gitignore
@@ -116,9 +102,9 @@ helm repo add zgw-office-addin https://infonl.github.io/zgw-office-addin
 ```
 
 ### Key Files to Understand:
-- `charts/*/Chart.yaml`: Chart metadata and dependencies
-- `charts/*/values.yaml`: Default configuration values
-- `charts/*/README.md`: Chart-specific documentation (where available)
+- `charts/podiumd/Chart.yaml`: Chart metadata and dependencies (MAIN FOCUS)
+- `charts/podiumd/values.yaml`: Default configuration values (MAIN FOCUS)
+- `charts/podiumd/README.md`: Chart-specific documentation
 - `.github/workflows/*.yaml`: CI/CD pipeline definitions
 
 ### Important Development Notes:
@@ -128,35 +114,35 @@ helm repo add zgw-office-addin https://infonl.github.io/zgw-office-addin
 - **Version Management**: Charts use semantic versioning and are released via GitHub Actions
 
 ### When Making Changes:
-1. **ALWAYS** lint the chart after changes: `helm lint charts/<chart-name>`
-2. **ALWAYS** test template generation: `helm template test charts/<chart-name> --dry-run`
-3. **Add external repositories first** if working with complex charts: `helm repo add bitnami https://charts.bitnami.com/bitnami`
+1. **ALWAYS** lint the podiumd chart after changes: `helm lint charts/podiumd`
+2. **ALWAYS** test template generation: `helm template test charts/podiumd --dry-run`
+3. **Add external repositories first** for podiumd dependencies: `helm repo add bitnami https://charts.bitnami.com/bitnami`
 4. Check Chart.yaml version numbers are consistent
 5. Update README.md if adding new parameters or changing behavior
-6. **Update dependencies** for complex charts: `helm dependency update charts/<chart-name>`
+6. **Update dependencies** for podiumd: `helm dependency update charts/podiumd`
 7. **Test with dependencies** for charts that reference external repositories
 
-### Validation Checklist for Chart Changes:
+### Validation Checklist for podiumd Chart Changes:
 ```bash
-# Step 1: Lint the modified chart
-helm lint charts/<modified-chart>
+# Step 1: Lint the podiumd chart
+helm lint charts/podiumd
 
 # Step 2: Generate templates to check for YAML validity  
-helm template test charts/<modified-chart> --dry-run
+helm template test charts/podiumd --dry-run
 
 # Step 3: Check output makes sense (look for proper Kubernetes resources)
-helm template test charts/<modified-chart> --dry-run | head -20
+helm template test charts/podiumd --dry-run | head -20
 
 # Step 4: Verify values.yaml changes work with template
-helm template test charts/<modified-chart> --dry-run --set key=value
+helm template test charts/podiumd --dry-run --set key=value
 
-# For KISS chart - test with custom values
-helm template test charts/kiss --dry-run --set frontend.image.tag=v1.2.3
+# Step 5: Update dependencies if needed
+helm dependency update charts/podiumd
 ```
 
 ### Common Issues and Solutions:
-- **"nil pointer evaluating"**: Missing required values in values.yaml (like in vngreferentielijsten)
-- **"missing dependencies"**: Run `helm dependency update charts/<chart-name>` to fetch external dependencies
+- **"nil pointer evaluating"**: Missing required values in values.yaml 
+- **"missing dependencies"**: Run `helm dependency update charts/podiumd` to fetch external dependencies
 - **"template errors"**: Usually means values.yaml doesn't match template expectations
 - **Icon warnings**: Cosmetic only - add "icon:" field to Chart.yaml if desired
 
