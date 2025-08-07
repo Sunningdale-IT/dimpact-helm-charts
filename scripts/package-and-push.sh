@@ -8,12 +8,22 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Auto-detect git repository information
+GIT_REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
+if [[ "$GIT_REMOTE_URL" =~ github\.com[:/]([^/]+)/([^/.]+) ]]; then
+    GIT_OWNER="${BASH_REMATCH[1]}"
+    GIT_REPO="${BASH_REMATCH[2]}"
+    DEFAULT_REGISTRY_URL="oci://ghcr.io/${GIT_OWNER}"
+else
+    DEFAULT_REGISTRY_URL=""
+fi
+
 # Default values
 CHART_NAME="podiumd"
 CHART_PATH="charts/${CHART_NAME}"
 DEV_MODE=false
 REGISTRY_URL=""
-REGISTRY_USERNAME=""
+REGISTRY_USERNAME="jimleitch01"
 REGISTRY_PASSWORD=""
 
 # Help function
@@ -35,6 +45,9 @@ EXAMPLES:
     # Development mode - push to custom registry
     $0 --dev --registry oci://my-registry.com/charts --username myuser --password mypass
     
+    # Development mode - uses auto-detected GitHub registry and defaults
+    $0 --dev
+    
     # Production mode - uses GitHub Actions workflow instead
     $0
 
@@ -42,6 +55,7 @@ ENVIRONMENT VARIABLES:
     HELM_REGISTRY_URL       Registry URL for development mode
     HELM_REGISTRY_USERNAME  Registry username for development mode  
     HELM_REGISTRY_PASSWORD  Registry password for development mode
+    GITHUB_TOKEN           GitHub token (used as default password for GitHub registries)
 
 EOF
 }
@@ -149,13 +163,18 @@ package_chart() {
 push_chart_dev() {
     # Use environment variables if not provided via command line
     REGISTRY_URL=${REGISTRY_URL:-$HELM_REGISTRY_URL}
+    REGISTRY_URL=${REGISTRY_URL:-$DEFAULT_REGISTRY_URL}
     REGISTRY_USERNAME=${REGISTRY_USERNAME:-$HELM_REGISTRY_USERNAME}
     REGISTRY_PASSWORD=${REGISTRY_PASSWORD:-$HELM_REGISTRY_PASSWORD}
+    REGISTRY_PASSWORD=${REGISTRY_PASSWORD:-$GITHUB_TOKEN}
     
     # Validate required parameters for dev mode
     if [[ -z "$REGISTRY_URL" ]]; then
         echo -e "${RED}❌ Registry URL is required for development mode${NC}"
         echo -e "${YELLOW}💡 Use --registry or set HELM_REGISTRY_URL environment variable${NC}"
+        if [[ -n "$GIT_REMOTE_URL" ]]; then
+            echo -e "${YELLOW}💡 Auto-detected GitHub repository, but could not determine registry URL${NC}"
+        fi
         exit 1
     fi
     
@@ -167,7 +186,7 @@ push_chart_dev() {
     
     if [[ -z "$REGISTRY_PASSWORD" ]]; then
         echo -e "${RED}❌ Registry password is required for development mode${NC}"
-        echo -e "${YELLOW}💡 Use --password or set HELM_REGISTRY_PASSWORD environment variable${NC}"
+        echo -e "${YELLOW}💡 Use --password, set HELM_REGISTRY_PASSWORD, or ensure GITHUB_TOKEN is available${NC}"
         exit 1
     fi
     
@@ -218,6 +237,10 @@ main() {
     echo -e "${YELLOW}📋 Chart: $CHART_NAME${NC}"
     echo -e "${YELLOW}📁 Path: $CHART_PATH${NC}"
     echo -e "${YELLOW}🔧 Mode: $([ "$DEV_MODE" = true ] && echo "Development" || echo "Production")${NC}"
+    if [[ -n "$DEFAULT_REGISTRY_URL" ]]; then
+        echo -e "${YELLOW}🏠 Auto-detected repository: $GIT_OWNER/$GIT_REPO${NC}"
+        echo -e "${YELLOW}📦 Default registry: $DEFAULT_REGISTRY_URL${NC}"
+    fi
     echo ""
     
     # Add dependency repositories
