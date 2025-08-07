@@ -7,7 +7,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "PLACEHOLDER"
+  name: "placeholder"
   # Whether to auto mount service account tokens
   automount: false
 
@@ -307,7 +307,7 @@ openzaak:
   nodeSelector:
     agentpool: userpool
   persistence:
-    existingClaim: "PLACEHOLDER"
+    existingClaim: "placeholder"
     size: "PLACEHOLDER"
   persistentVolume:
     volumeAttributeShareName: "PLACEHOLDER"
@@ -479,7 +479,7 @@ opennotificaties:
   nodeSelector:
     agentpool: userpool
   persistence:
-    existingClaim: "PLACEHOLDER"
+    existingClaim: "placeholder"
     size: "PLACEHOLDER"
   persistentVolume:
     volumeAttributeShareName: "PLACEHOLDER"
@@ -681,7 +681,7 @@ objecten:
   nodeSelector:
     agentpool: userpool
   persistence:
-    existingClaim: "PLACEHOLDER"
+    existingClaim: "placeholder"
     size: "PLACEHOLDER"
   persistentVolume:
     volumeAttributeShareName: "PLACEHOLDER"
@@ -789,6 +789,7 @@ objecttypen:
     environment: dimpact-info-ontw
   image:
     repository: acrprodmgmt.azurecr.io/objecttypen
+    tag: "PLACEHOLDER"
   nodeSelector:
     agentpool: userpool
   redis:
@@ -1019,7 +1020,7 @@ openklant:
   nodeSelector:
     agentpool: userpool
   persistence:
-    existingClaim: "PLACEHOLDER"
+    existingClaim: "placeholder"
     size: "PLACEHOLDER"
   persistentVolume:
     volumeAttributeShareName: "PLACEHOLDER"
@@ -1179,7 +1180,7 @@ openformulieren:
   nodeSelector:
     agentpool: userpool
   persistence:
-    existingClaim: "PLACEHOLDER"
+    existingClaim: "placeholder"
     size: "PLACEHOLDER"
   persistentVolume:
     volumeAttributeShareName: "PLACEHOLDER"
@@ -1335,7 +1336,7 @@ openinwoner:
   nodeSelector:
     agentpool: userpool
   persistence:
-    existingClaim: "PLACEHOLDER"
+    existingClaim: "placeholder"
     size: "PLACEHOLDER"
   persistentVolume:
     volumeAttributeShareName: "PLACEHOLDER"
