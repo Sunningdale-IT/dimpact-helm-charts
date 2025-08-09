@@ -52,7 +52,7 @@ ingress:
   enabled: true
   ingressClassName: nginx
   hostname: {{ $global.configuration.keycloakHostname | default "keycloak.example.com" }}
-  {{- if .Values.ingress.tls }}
+  {{- if and .Values.ingress (eq .Values.ingress.tls true) }}
   tls: true
   {{- end }}
 

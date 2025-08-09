@@ -95,3 +95,8 @@ resources:
   requests:
     cpu: "100m"
     memory: "256Mi"
+
+# Ingress configuration for development
+ingress:
+  enabled: true
+  tls: false

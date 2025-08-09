@@ -43,7 +43,7 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
-  {{- if .Values.ingress.tls }}
+  {{- if and .Values.ingress (eq .Values.ingress.tls true) }}
   tls:
     - secretName: openzaak-tls
       hosts:

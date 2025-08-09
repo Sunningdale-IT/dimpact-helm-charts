@@ -84,6 +84,11 @@ global:
 infinispan:
   enabled: true
 
+# Ingress configuration
+ingress:
+  enabled: true
+  tls: false
+
 # Default resource configuration
 resources:
   limits:
@@ -92,11 +97,6 @@ resources:
   requests:
     cpu: "250m"
     memory: "512Mi"
-
-# Ingress configuration
-ingress:
-  enabled: true
-  tls: false
 
 # Persistent volume configuration
 persistentVolume:
