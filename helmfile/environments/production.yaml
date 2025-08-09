@@ -1,0 +1,74 @@
+#
+# Production Environment Configuration for PodiumD
+#
+# This file contains production-specific configuration values.
+# These override the default values for production deployments.
+#
+
+# Production namespace
+namespace: podiumd
+
+# Global configuration for production
+global:
+  configuration:
+    enabled: true
+    organization: "PodiumD Production"
+    # Production endpoints (to be configured)
+    openzaakAutorisatiesApi: "https://openzaak.example.com/autorisaties/api/v1/"
+    notificatiesApi: "https://notificaties.example.com/api/v1/"
+    # Production secrets should be managed via external secret management
+    notificatiesOpenzaakSecret: ""  # Use external secret
+    openzaakNotificatiesSecret: ""  # Use external secret
+  secrets: true  # Enable external secret management
+  settings:
+    databaseHost: ""  # Use external database configuration
+  security:
+    allowInsecureImages: false
+  imageRegistry: ""  # Use external registry configuration
+
+# Production persistent volume configuration
+persistentVolume:
+  volumeAttributeResourceGroup: ""  # Configure for production
+  nodeStageSecretRefName: ""  # Use production storage secret
+  nodeStageSecretRefNamespace: kube-system
+
+# Production-specific component settings
+keycloak:
+  enabled: true
+
+# Disable mock services in production
+brppersonenmock:
+  enabled: false
+
+# Enable all production components
+kisselastic:
+  enabled: true
+
+zac:
+  enabled: true
+
+# Production resource limits (larger than development)
+resources:
+  limits:
+    cpu: "2000m"
+    memory: "4Gi"
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+
+# Production-specific configurations
+ingress:
+  enabled: true
+  tls: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+monitoring:
+  enabled: true
+  prometheus: true
+  grafana: true
+
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
