@@ -1,0 +1,94 @@
+#
+# Open Zaak Configuration for PodiumD
+#
+# This template extracts the Open Zaak configuration from the original podiumd chart.
+# Environment-specific values are injected via Helmfile templating.
+#
+
+{{ $global := .Values.global | default dict }}
+{{ $openzaak := .Values.openzaak | default dict }}
+
+enabled: {{ $openzaak.enabled | default true }}
+
+image:
+  registry: {{ $global.imageRegistry | default "" }}
+
+settings:
+  allowedHosts: 
+    - "*"
+  
+  secretKey: {{ $global.configuration.openzaakSecretKey | default "CHANGEME" | quote }}
+  
+  database:
+    host: {{ $global.settings.databaseHost | default "postgresql" }}
+    name: openzaak
+    username: openzaak
+    password: {{ $global.configuration.openzaakDbPassword | default "CHANGEME" | quote }}
+  
+  cache:
+    default: redis://redis:6379/0
+    axes: redis://redis:6379/0
+  
+  oidcUrl: {{ $global.configuration.keycloakUrl | default "https://keycloak.example.com" }}
+  
+  notificationsApi:
+    token: {{ $global.configuration.openzaakNotificatiesSecret | default "CHANGEME" | quote }}
+    url: {{ $global.configuration.notificatiesApi }}
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: {{ $global.configuration.openzaakHostname | default "openzaak.example.com" }}
+      paths:
+        - path: /
+          pathType: Prefix
+  {{- if .Values.ingress.tls }}
+  tls:
+    - secretName: openzaak-tls
+      hosts:
+        - {{ $global.configuration.openzaakHostname | default "openzaak.example.com" }}
+  {{- end }}
+
+resources:
+  limits:
+    cpu: {{ .Values.resources.limits.cpu | default "1000m" }}
+    memory: {{ .Values.resources.limits.memory | default "2Gi" }}
+  requests:
+    cpu: {{ .Values.resources.requests.cpu | default "250m" }}
+    memory: {{ .Values.resources.requests.memory | default "512Mi" }}
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations: []
+
+affinity: {}
+
+# Security context
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+
+# Redis dependency
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+      requests:
+        cpu: "100m"
+        memory: "256Mi"

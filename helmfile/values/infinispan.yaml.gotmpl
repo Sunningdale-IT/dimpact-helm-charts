@@ -1,0 +1,38 @@
+#
+# Basic template for components with minimal configuration
+# This is used for components that don't need extensive customization
+#
+
+enabled: true
+
+image:
+  registry: {{ .Values.global.imageRegistry | default "" }}
+
+resources:
+  limits:
+    cpu: {{ .Values.resources.limits.cpu | default "500m" }}
+    memory: {{ .Values.resources.limits.memory | default "1Gi" }}
+  requests:
+    cpu: {{ .Values.resources.requests.cpu | default "100m" }}
+    memory: {{ .Values.resources.requests.memory | default "256Mi" }}
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations: []
+
+affinity: {}
+
+# Security context
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true

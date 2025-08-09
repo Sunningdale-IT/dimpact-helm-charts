@@ -1,0 +1,97 @@
+#
+# Development Environment Configuration for PodiumD
+#
+# This file contains development-specific configuration values.
+# These override the default values for development deployments.
+#
+
+# Development namespace
+namespace: podiumd-dev
+
+# Global configuration for development
+global:
+  configuration:
+    enabled: true
+    organization: "Ontwikkelomgeving INFO"
+    openzaakAutorisatiesApi: "https://ontw-openzaak.dimpact.info.nl/autorisaties/api/v1/"
+    notificatiesApi: "https://ontw-notificaties.dimpact.info.nl/api/v1/"
+    notificatiesOpenzaakSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    openzaakNotificatiesSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    keycloakAdminUrl: "https://ontw-keycloak-admin.dimpact.info.nl"
+    keycloakUrl: "https://ontw-keycloak.dimpact.info.nl"
+    keycloakHostname: "ontw-keycloak.dimpact.info.nl"
+    openzaakSecretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    openzaakDbPassword: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    openzaakHostname: "ontw-openzaak.dimpact.info.nl"
+    opennotificatiesSecretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    opennotificatiesDbPassword: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    opennotificatiesHostname: "ontw-notificaties.dimpact.info.nl"
+    azureTenantId: "5ac40c21-50a2-414f-93d1-495d1324322b"
+    azureClientSecret: "SECRETPLACEHOLDER"
+    azureClientId: "2e74f511-6741-4e70-93c7-465cdd6b87a9"
+  secrets: false
+  settings:
+    databaseHost: "psql-ontw-info.postgres.database.azure.com"
+  security:
+    allowInsecureImages: true
+  imageRegistry: acrprodmgmt.azurecr.io
+
+# Development persistent volume configuration
+persistentVolume:
+  volumeAttributeResourceGroup: rg-ontw-info
+  nodeStageSecretRefName: podiumd-storage
+  nodeStageSecretRefNamespace: kube-system
+
+# Development-specific component settings
+keycloak:
+  enabled: true
+
+clamav:
+  enabled: true
+
+infinispan:
+  enabled: true
+
+openzaak:
+  enabled: true
+
+opennotificaties:
+  enabled: true
+
+objecten:
+  enabled: true
+
+objecttypen:
+  enabled: true
+
+openarchiefbeheer:
+  enabled: true
+
+openklant:
+  enabled: true
+
+openformulieren:
+  enabled: true
+
+openinwoner:
+  enabled: true
+
+zac:
+  enabled: true
+
+# Enable mock services in development
+brppersonenmock:
+  enabled: true
+
+# Optional components can be disabled in development
+kisselastic:
+  enabled: false  # Often disabled in dev to save resources
+
+# Development resource limits (smaller than production)
+resources:
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+  requests:
+    cpu: "100m"
+    memory: "256Mi"

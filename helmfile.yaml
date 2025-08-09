@@ -1,0 +1,246 @@
+#
+# PodiumD Helmfile Configuration
+# 
+# This helmfile replaces the monolithic podiumd chart with multiple separate releases
+# to avoid Kubernetes Secret size limits while maintaining the same functionality.
+#
+
+---
+# Define repositories
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: wiremind
+    url: https://wiremind.github.io/wiremind-helm-charts
+  - name: dimpact
+    url: https://Dimpact-Samenwerking.github.io/helm-charts/
+  - name: maykinmedia
+    url: https://maykinmedia.github.io/charts
+  - name: kiss-elastic
+    url: https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/.github/main/docs/scripts/elastic
+  - name: openshift
+    url: https://charts.openshift.io
+  - name: zac
+    url: https://infonl.github.io/dimpact-zaakafhandelcomponent/
+
+# Global environment configuration
+environments:
+  default:
+    values:
+      - helmfile/environments/default.yaml
+  development:
+    values:
+      - helmfile/environments/development.yaml
+  production:
+    values:
+      - helmfile/environments/production.yaml
+
+---
+# Component releases organized by functional groups
+releases:
+  #
+  # Infrastructure Tier - Core platform services
+  #
+  - name: keycloak
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: bitnami/keycloak
+    version: 24.8.0
+    values:
+      - helmfile/values/keycloak.yaml.gotmpl
+    wait: true
+    timeout: 600
+
+  - name: clamav
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: wiremind/clamav
+    version: 3.2.0
+    values:
+      - helmfile/values/clamav.yaml.gotmpl
+    needs:
+      - keycloak
+    wait: true
+    timeout: 300
+
+  - name: infinispan
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: openshift/infinispan
+    version: 0.5.0
+    values:
+      - helmfile/values/infinispan.yaml.gotmpl
+    installed: {{ .Values.infinispan.enabled | default true }}
+    needs:
+      - keycloak
+    wait: true
+    timeout: 300
+
+  #
+  # Case Management Tier - Core case handling
+  #
+  - name: openzaak
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: maykinmedia/openzaak
+    version: 1.9.0
+    values:
+      - helmfile/values/openzaak.yaml.gotmpl
+    installed: {{ .Values.openzaak.enabled | default true }}
+    needs:
+      - keycloak
+      - clamav
+    wait: true
+    timeout: 600
+
+  - name: opennotificaties
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: maykinmedia/opennotificaties
+    version: 1.9.2
+    values:
+      - helmfile/values/opennotificaties.yaml.gotmpl
+    installed: {{ .Values.opennotificaties.enabled | default true }}
+    needs:
+      - keycloak
+    wait: true
+    timeout: 300
+
+  - name: zac
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: zac/zaakafhandelcomponent
+    version: 1.0.98
+    values:
+      - helmfile/values/zac.yaml.gotmpl
+    installed: {{ .Values.zac.enabled | default true }}
+    needs:
+      - openzaak
+      - opennotificaties
+      - keycloak
+    wait: true
+    timeout: 600
+
+  #
+  # Objects & Data Tier - Data management services
+  #
+  - name: objecten
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: maykinmedia/objecten
+    version: 2.8.1
+    values:
+      - helmfile/values/objecten.yaml.gotmpl
+    installed: {{ .Values.objecten.enabled | default true }}
+    needs:
+      - keycloak
+    wait: true
+    timeout: 300
+
+  - name: objecttypen
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: maykinmedia/objecttypen
+    version: 1.3.3
+    values:
+      - helmfile/values/objecttypen.yaml.gotmpl
+    installed: {{ .Values.objecttypen.enabled | default true }}
+    needs:
+      - keycloak
+    wait: true
+    timeout: 300
+
+  - name: openarchiefbeheer
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: maykinmedia/openarchiefbeheer
+    version: 1.3.10
+    values:
+      - helmfile/values/openarchiefbeheer.yaml.gotmpl
+    installed: {{ .Values.openarchiefbeheer.enabled | default true }}
+    needs:
+      - keycloak
+    wait: true
+    timeout: 300
+
+  - name: openklant
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: maykinmedia/openklant
+    version: 1.7.0
+    values:
+      - helmfile/values/openklant.yaml.gotmpl
+    installed: {{ .Values.openklant.enabled | default true }}
+    needs:
+      - keycloak
+    wait: true
+    timeout: 300
+
+  #
+  # Forms & Portal Tier - User-facing services
+  #
+  - name: openformulieren
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: maykinmedia/openforms
+    version: 1.8.5
+    values:
+      - helmfile/values/openformulieren.yaml.gotmpl
+    installed: {{ .Values.openformulieren.enabled | default true }}
+    needs:
+      - keycloak
+      - objecten
+      - objecttypen
+    wait: true
+    timeout: 600
+
+  - name: openinwoner
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: maykinmedia/openinwoner
+    version: 1.7.5
+    values:
+      - helmfile/values/openinwoner.yaml.gotmpl
+    installed: {{ .Values.openinwoner.enabled | default true }}
+    needs:
+      - keycloak
+      - openzaak
+      - openklant
+    wait: true
+    timeout: 600
+
+  #
+  # Contact Management Tier
+  #
+  - name: kisselastic
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: kiss-elastic/kiss-elastic
+    version: 1.0.0
+    values:
+      - helmfile/values/kisselastic.yaml.gotmpl
+    installed: {{ .Values.kisselastic.enabled | default true }}
+    wait: true
+    timeout: 300
+
+  #
+  # Testing/Mock Tier
+  #
+  - name: brppersonenmock
+    namespace: {{ .Values.namespace | default "podiumd" }}
+    chart: dimpact/brp-personen-mock
+    version: 1.2.6
+    values:
+      - helmfile/values/brppersonenmock.yaml.gotmpl
+    installed: {{ .Values.brppersonenmock.enabled | default true }}
+    wait: true
+    timeout: 300
+
+# Hooks for pre/post deployment actions
+hooks:
+  - events: ["preSync"]
+    showlogs: true
+    command: "bash"
+    args:
+      - "-c"
+      - |
+        echo "🚀 Starting PodiumD deployment..."
+        echo "This deployment replaces the monolithic podiumd chart with individual component releases"
+        kubectl create namespace {{ .Values.namespace | default "podiumd" }} --dry-run=client -o yaml | kubectl apply -f -
+
+  - events: ["postSync"]
+    showlogs: true
+    command: "bash"
+    args:
+      - "-c"
+      - |
+        echo "✅ PodiumD deployment completed successfully!"
+        echo "All components have been deployed as separate Helm releases to avoid Secret size limits"
+        kubectl get pods -n {{ .Values.namespace | default "podiumd" }}
