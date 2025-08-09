@@ -6,33 +6,27 @@ This implementation successfully addresses the Kubernetes Secret size limitation
 
 ### 🏗️ Architecture Overview
 
-The solution splits the 56KB monolithic chart into logical tiers:
+The solution splits the 56KB monolithic chart into 3 logical groups:
 
 ```
-Infrastructure Tier
+Infra (Core Infrastructure)
 ├── Keycloak (Identity & Access Management)
 ├── ClamAV (Antivirus Scanning)  
 └── Infinispan (Distributed Caching)
 
-Case Management Tier
+PodiumD app (Core Application Components)
 ├── Open Zaak (Case Management API)
 ├── Open Notificaties (Notification Services)
-└── ZAC (Case Handling Component)
-
-Objects & Data Tier
+├── ZAC (Case Handling Component)
 ├── Objecten (Generic Objects API)
 ├── Objecttypen (Object Types API)
 ├── Open Archiefbeheer (Archive Management)
-└── Open Klant (Customer Management)
-
-Forms & Portal Tier
+├── Open Klant (Customer Management)
 ├── Open Formulieren (Form Builder & Renderer)
 └── Open Inwoner (Citizen Portal)
 
-Contact Management Tier
-└── KISS Elastic (Contact Management System)
-
-Testing/Mock Tier
+Non-prod (Testing Tools and Mocking)
+├── KISS Elastic (Contact Management System)
 └── BRP Personen Mock (Mock Person Registry)
 ```
 
@@ -84,7 +78,7 @@ helmfile -e production sync
 
 ### 🔧 Key Features
 
-1. **Dependency Management**: Proper deployment ordering (Infrastructure → Core APIs → Data Services → User Apps)
+1. **Dependency Management**: Proper deployment ordering (Infra → PodiumD app → Non-prod)
 2. **Environment Configuration**: Separate configs for development, staging, production
 3. **Component Templates**: Go template-based value injection for environment-specific settings
 4. **Migration Automation**: Complete migration script with backup and validation

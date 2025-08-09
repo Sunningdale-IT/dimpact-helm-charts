@@ -34,32 +34,26 @@ helmfile -e development --set namespace=podiumd-custom sync
 
 ## 📋 Architecture Overview
 
-The PodiumD platform is decomposed into **logical tiers** deployed as separate Helm releases:
+The PodiumD platform is decomposed into **3 logical groups** deployed as separate Helm releases:
 
-### 🏗️ Infrastructure Tier (Core Services)
+### 🏗️ Infra (Core Infrastructure)
 - **Keycloak** - Identity and Access Management
 - **ClamAV** - Antivirus Scanning
 - **Infinispan** - Distributed Caching
 
-### ⚖️ Case Management Tier
+### 🚀 PodiumD app (Core Application Components)
 - **Open Zaak** - Case Management API
 - **Open Notificaties** - Notification Services  
 - **ZAC** - Case Handling Component
-
-### 📋 Objects & Data Tier
 - **Objecten** - Generic Objects API
 - **Objecttypen** - Object Types API
 - **Open Archiefbeheer** - Archive Management
 - **Open Klant** - Customer Management
-
-### 🌐 Forms & Portal Tier
 - **Open Formulieren** - Form Builder & Renderer
 - **Open Inwoner** - Citizen Portal
 
-### 📞 Contact Management Tier
+### 🧪 Non-prod (Testing Tools and Mocking)
 - **KISS Elastic** - Contact Management System
-
-### 🧪 Testing/Mock Tier
 - **BRP Personen Mock** - Mock Person Registry
 
 ## 🎯 Problem Solved
@@ -113,11 +107,9 @@ ingress:
 
 Components are deployed in dependency order:
 
-1. **Infrastructure Tier** (Keycloak, ClamAV, Infinispan)
-2. **Core APIs** (Open Zaak, Open Notificaties) 
-3. **Data Services** (Objecten, Objecttypen, etc.)
-4. **User-Facing Apps** (Open Formulieren, Open Inwoner)
-5. **Specialized Components** (ZAC, KISS)
+1. **Infra** (Keycloak, ClamAV, Infinispan)
+2. **PodiumD app** (Core application components)
+3. **Non-prod** (Testing tools and mocking services)
 
 ## 🚀 Deployment Commands
 
@@ -134,8 +126,8 @@ helmfile -e development diff
 helmfile -e development sync
 
 # Deploy specific components
-helmfile -e development -l tier=infrastructure sync
 helmfile -e development -l name=keycloak sync
+helmfile -e development -l name=openzaak sync
 
 # Destroy deployment
 helmfile -e development destroy
@@ -377,8 +369,8 @@ ENVIRONMENT=${ENVIRONMENT:-development}
 # Create namespace
 kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
-# Deploy infrastructure tier
-echo "🏗️ Deploying infrastructure tier..."
+# Deploy infrastructure
+echo "🏗️ Deploying infra components..."
 helm upgrade --install keycloak bitnami/keycloak \
   --namespace $NAMESPACE \
   --values values/keycloak-$ENVIRONMENT.yaml \
@@ -389,8 +381,8 @@ helm upgrade --install clamav wiremind/clamav \
   --values values/clamav-$ENVIRONMENT.yaml \
   --wait --timeout 5m
 
-# Deploy case management tier
-echo "⚖️ Deploying case management tier..."
+# Deploy PodiumD app components
+echo "🚀 Deploying PodiumD app components..."
 helm upgrade --install openzaak maykinmedia/openzaak \
   --namespace $NAMESPACE \
   --values values/openzaak-$ENVIRONMENT.yaml \

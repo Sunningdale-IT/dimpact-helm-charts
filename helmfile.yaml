@@ -39,7 +39,7 @@ environments:
 # Component releases organized by functional groups
 releases:
   #
-  # Infrastructure Tier - Core platform services
+  # Infra - Core infrastructure and platform services
   #
   - name: keycloak
     namespace: {{ .Values.namespace | default "podiumd" }}
@@ -74,7 +74,7 @@ releases:
     timeout: 300
 
   #
-  # Case Management Tier - Core case handling
+  # PodiumD app - Core application components
   #
   - name: openzaak
     namespace: {{ .Values.namespace | default "podiumd" }}
@@ -115,9 +115,6 @@ releases:
     wait: true
     timeout: 600
 
-  #
-  # Objects & Data Tier - Data management services
-  #
   - name: objecten
     namespace: {{ .Values.namespace | default "podiumd" }}
     chart: maykinmedia/objecten
@@ -166,9 +163,6 @@ releases:
     wait: true
     timeout: 300
 
-  #
-  # Forms & Portal Tier - User-facing services
-  #
   - name: openformulieren
     namespace: {{ .Values.namespace | default "podiumd" }}
     chart: maykinmedia/openforms
@@ -198,7 +192,7 @@ releases:
     timeout: 600
 
   #
-  # Contact Management Tier
+  # Non-prod - Testing tools, mocking and development services
   #
   - name: kisselastic
     namespace: {{ .Values.namespace | default "podiumd" }}
@@ -210,9 +204,6 @@ releases:
     wait: true
     timeout: 300
 
-  #
-  # Testing/Mock Tier
-  #
   - name: brppersonenmock
     namespace: {{ .Values.namespace | default "podiumd" }}
     chart: dimpact/brp-personen-mock
