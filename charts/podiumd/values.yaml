@@ -125,6 +125,7 @@ keycloak:
   podSecurity:
     enabled: false
   keycloakConfigCli:
+    enabled: false
     image:
       repository: keycloak-config-cli
     nodeSelector:
@@ -135,687 +136,740 @@ keycloak:
     user: keycloak
     password: "NyUJuYrzPUpnpRnsWxE9uAVevnLogKZ5"
 
+# Minimal configurations for components with templates (all disabled)
+# To enable a component, uncomment its full configuration below and set enabled: true
+
 infinispan:
   enabled: false
-  images:
-    server: acrprodmgmt.azurecr.io/infinispan-server:15.1
-    initContainer: acrprodmgmt.azurecr.io/busybox:1.28.0-glibc
-  nodeSelector:
-    agentpool: userpool
-  deploy:
-    nameOverride: ispn
-    replicas: 2
-    container:
-      storage:
-        storageClassName: podiumd-standard
-    security:
-      secretName: ispn-generated-secret
-      monitor:
-        secret: "PLACEHOLDER"
-      batch: |
-        credentials add keystore -c password -p secret --path="internal-credentials.pfx"
-        user create keycloak -p yGzED95riA8hx5O2FID56aYI97UMSdbA -g deployer
-        user create admin -p Zr91kKDPsdqPrGjY81vMezHzSAj5m4SG -g admin
-    ssl:
-      endpointSecretName: "ispn-secret"
-      transportSecretName: "ispn-transport-secret"
+
+kiss:
+  enabled: false
+
+openinwoner:
+  enabled: false
+
+openformulieren:
+  enabled: false
 
 openzaak:
   enabled: false
-  create_required_catalogi_job:
-    client_id: integratieteam
-    secret: "8IDlsFxbtqauJKwS4PI"
-    enabled: true
-    e2eTestZaaktype:
-      create: "PLACEHOLDER"
   configuration:
-    enabled: true
-    oidcUrl: "https://ontw-openzaak.dimpact.info.nl"
-    oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    notificatiesAuthorization:
-      enabled: false
-    notificaties:
-      enabled: false
-    initContainer:
-      enabled: false
-    job:
-      enabled: true
-    data: |
-      oidc_db_config_enable: true
-      oidc_db_config_admin_auth:
-        items:
-          - identifier: admin-oidc
-            enabled: true
-            claim_mapping:
-              email:
-                - email
-              first_name:
-                - given_name
-              last_name:
-              - family_name
-            username_claim:
-              - preferred_username
-            groups_claim:
-              - groups
-            superuser_group_names:
-              - "administrators"
-            oidc_rp_scopes_list:
-              - openid
-              - email
-              - profile
-            endpoint_config: 
-              oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/
-            userinfo_claims_source: id_token
-            oidc_rp_client_id: openzaak
-            oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7
-            oidc_rp_sign_algo: RS256
-            make_users_staff: true
-            sync_groups: true
-      zgw_consumers_config_enable: true
-      zgw_consumers:
-        services:
-        - identifier: notificaties-api
-          label: Open Notificaties
-          api_root: https://ontw-notificaties.dimpact.info.nl/api/v1/
-          api_type: nrc
-          auth_type: zgw
-          client_id: zaak
-          secret: wRaVDs7NzKbRcz
-        - identifier: objecten-api
-          label: Objecten API
-          api_root: https://ontw-objecten.dimpact.info.nl/api/v2/
-          api_type: orc
-          auth_type: api_key
-          header_key: Authorization
-          header_value: Token 88d54b7d8500175894ca59d5e0d3b06fe69bb31d
-        - identifier: autorisaties-api
-          label: Open Zaak - Autorisaties
-          api_root: https://ontw-openzaak.dimpact.info.nl/autorisaties/api/v1/
-          api_type: ac
-          auth_type: zgw
-          client_id: zaak
-          secret: wRaVDs7NzKbRcz
-      vng_api_common_credentials_config_enable: true
-      vng_api_common_credentials:
-        items:
-          - identifier: zaak
-            secret: wRaVDs7NzKbRcz
-          - identifier: zac
-            secret: ERYe7BOTMRaLQcVECNhJEpdouuVDd6RD
-          - identifier: notificaties
-            secret: 9Ri4H6toPvyvsrtsjdp
-          - identifier: objecten
-            secret: qaKTjCHewaRXSWdGix3xG
-          - identifier: integratieteam
-            secret: 8IDlsFxbtqauJKwS4PI
-      vng_api_common_applicaties_config_enable: true
-      vng_api_common_applicaties:
-        items:
-          - uuid: 6bf5bfb4-e76b-469f-b993-4aedb832b61f
-            client_ids:
-              - zaak
-            heeft_alle_autorisaties: true
-            label: Zaak
-          - uuid: 4b305285-64c4-484a-8db4-2f66996d4760
-            client_ids:
-              - zac
-            heeft_alle_autorisaties: true
-            label: Zaakafhandelcomponent
-          - uuid: c5989254-922d-43f9-a32a-3fa2a44f6230
-            client_ids:
-              - notificaties
-            heeft_alle_autorisaties: true
-            label: Notificaties
-          - uuid: d0782c50-9cc2-4aa3-86e6-03e1cfb29813
-            client_ids:
-              - objecten
-            heeft_alle_autorisaties: true
-            label: Objecten
-          - uuid: 3595eece-ba8a-47c9-a388-496086c9677f
-            client_ids:
-              - integratieteam
-            heeft_alle_autorisaties: true
-            label: Integratieteam
-      notifications_config_enable: true
-      notifications_config:
-        notifications_api_service_identifier: notificaties-api
-        notification_delivery_max_retries: 5
-        notification_delivery_retry_backoff: 3
-        notification_delivery_retry_backoff_max: 48
-      sites_config_enable: true
-      sites_config:
-        items:
-        - domain: ontw-openzaak.dimpact.info.nl
-          name: "Open Zaak op Ontwikkelomgeving INFO"
-  settings:
-    allowedHosts: ontw-openzaak.dimpact.info.nl,openzaak-nginx.podiumd.svc.cluster.local
-    email:
-      host: mail.enschede.nl
-      defaultFrom: "noreply@info.nl"
-    database:
-      name: openzaak
-      username: openzaak
-      password: "7kGdVlRrh5qxvzAjPbFqbDLsHLS2Cetm"
-    secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    isHttps: true
-    disable2fa: true
-    sentry:
-      dsn: "https://3dc6dcc6b98241d4b9b39e8f4debd29d@sentry.maykinmedia.nl/351"
-    environment: dimpact-info-ontw
-    numProxies: 2
-  image:
-    repository: acrprodmgmt.azurecr.io/openzaak
-  nodeSelector:
-    agentpool: userpool
-  persistence:
-    existingClaim: "placeholder"
-    size: "PLACEHOLDER"
-  persistentVolume:
-    volumeAttributeShareName: "PLACEHOLDER"
-  nginx:
-    image:
-      repository: acrprodmgmt.azurecr.io/nginx
-      tag: stable
-  redis:
-    image:
-      repository: redis
-    master:
-      nodeSelector:
-        agentpool: userpool
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: managed-csi
+    enabled: false
+  create_required_catalogi_job:
+    enabled: false
 
 opennotificaties:
   enabled: false
-  configuration:
-    enabled: true
-    http_request_job:
-      enabled: false
-    initContainer:
-      enabled: false
-    job:
-      enabled: true
-    oidcUrl: "https://ontw-notificaties.dimpact.info.nl"
-    oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    data: |
-      oidc_db_config_enable: true
-      oidc_db_config_admin_auth:
-        items:
-          - identifier: admin-oidc
-            enabled: true
-            claim_mapping:
-              email:
-                - email
-              first_name:
-                - given_name
-              last_name:
-                - family_name
-            username_claim:
-              - preferred_username
-            groups_claim:
-              - groups
-            superuser_group_names:
-              - "administrators"
-            oidc_rp_scopes_list:
-              - openid
-              - email
-              - profile
-            endpoint_config:
-              oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/
-            userinfo_claims_source: id_token
-            oidc_rp_client_id: opennotificaties
-            oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7
-            oidc_rp_sign_algo: RS256
-            make_users_staff: true
-            sync_groups: true
-      sites_config_enable: true
-      sites_config:
-        items:
-          - domain: ontw-notificaties.dimpact.info.nl
-            name: "Open Notificaties op Ontwikkelomgeving INFO"
-      zgw_consumers_config_enable: true
-      zgw_consumers:
-        services:
-          - identifier: notificaties-api
-            label: Notificaties API
-            api_root: https://ontw-notificaties.dimpact.info.nl/api/v1/
-            api_type: nrc
-            auth_type: zgw
-            client_id: notificaties
-            secret: 9Ri4H6toPvyvsrtsjdp
-          - identifier: autorisaties-api
-            label: Open Zaak - Autorisaties API
-            api_root: https://ontw-openzaak.dimpact.info.nl/autorisaties/api/v1/
-            api_type: ac
-            auth_type: zgw
-            client_id: notificaties
-            secret: 9Ri4H6toPvyvsrtsjdp
-      vng_api_common_credentials_config_enable: true
-      vng_api_common_credentials:
-        items:
-          - identifier: zaak
-            secret: wRaVDs7NzKbRcz
-          - identifier: notificaties
-            secret: 9Ri4H6toPvyvsrtsjdp
-          - identifier: objecten
-            secret: qaKTjCHewaRXSWdGix3xG
-      autorisaties_api_config_enable: true
-      autorisaties_api:
-        authorizations_api_service_identifier: autorisaties-api
-      notifications_config_enable: true
-      notifications_config:
-        notifications_api_service_identifier: notificaties-api
-        notification_delivery_max_retries: 5
-        notification_delivery_retry_backoff: 3
-        notification_delivery_retry_backoff_max: 48
-      notifications_kanalen_config_enable: true
-      notifications_kanalen_config:
-        items:
-        - naam: autorisaties
-          filters:
-          - autorisaties
-        - naam: besluittypen
-          filters:
-          - catalogus
-        - naam: informatieobjecttypen
-          filters:
-          - catalogus
-        - naam: zaaktypen
-          filters:
-          - catalogus
-        - naam: zaken
-          filters:
-          - bronorganisatie
-          - zaaktype
-          - vertrouwelijkheidaanduiding
-        - naam: documenten
-          filters:
-          - bronorganisatie
-          - informatieobjecttype
-          - vertrouwelijkheidaanduiding
-        - naam: besluiten
-          filters:
-          - verantwoordelijke_organisatie
-          - besluittype
-        - naam: objecten
-          filters:
-          - object
-          - object_type
-      notifications_abonnementen_config_enable: true
-      notifications_abonnementen_config:
-        items:
-          - uuid: b5d5abcb-b95c-4367-913e-6b90b28b9d8b
-            callback_url: https://ontw-zac.dimpact.info.nl/rest/notificaties
-            auth: Rk1vbyXy6T1Vtr2u8Gsm1GceCDOQ3Zt4
-            kanalen:
-              - naam: objecten
-              - naam: zaken
-              - naam: documenten
-              - naam: besluiten
-              - naam: zaaktypen
-          - uuid: e6983a51-0315-4ed3-b991-b54eb363bec9
-            callback_url: https://ontw-notificaties.dimpact.info.nl/api/v1/callbacks
-            auth: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJub3RpZmljYXRpZXMiLCJpYXQiOjE3Mzk4ODcwOTIsImNsaWVudF9pZCI6Im5vdGlmaWNhdGllcyIsInVzZXJfaWQiOiIiLCJ1c2VyX3JlcHJlc2VudGF0aW9uIjoiIn0.1nL3fqoEkXC1hvp6KPo6fua9oZWxaznbw1qANCVJnoc
-            kanalen:
-              - naam: autorisaties
-  settings:
-    allowedHosts: ontw-notificaties.dimpact.info.nl,opennotificaties-nginx.podiumd.svc.cluster.local
-    database:
-      name: opennotificaties
-      username: opennotificaties
-      password: "C8MKIeDqofwFm0YwiL48JSzN9cFyllfo"
-    secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    email:
-      host: mail.enschede.nl
-      defaultFrom: "noreply@info.nl"
-    isHttps: true
-    disable2fa: true
-    sentry:
-      dsn: "https://3ed5e2a0c17b4e86bbe32e00774a75c2@sentry.maykinmedia.nl/352"
-    environment: dimpact-info-ontw
-    numProxies: 2
-  image:
-    repository: acrprodmgmt.azurecr.io/opennotificaties
-  nodeSelector:
-    agentpool: userpool
-  persistence:
-    existingClaim: "placeholder"
-    size: "PLACEHOLDER"
-  persistentVolume:
-    volumeAttributeShareName: "PLACEHOLDER"
-  rabbitmq:
-    auth:
-      password: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    image:
-      repository: rabbitmq
-    nodeSelector:
-      agentpool: userpool
-  redis:
-    image:
-      repository: redis
-    master:
-      nodeSelector:
-        agentpool: userpool
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: managed-csi
 
 objecten:
   enabled: false
-  configuration:
-    enabled: true
-    demo:
-      enabled: false
-    oidcUrl: "https://ontw-objecten.dimpact.info.nl"
-    oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    job:
-      enabled: true
-    initContainer:
-      enabled: false
-    data: |
-      oidc_db_config_enable: true
-      oidc_db_config_admin_auth:
-        items:
-          - identifier: admin-oidc
-            enabled: true
-            claim_mapping:
-              email:
-                - email
-              first_name:
-                - given_name
-              last_name:
-                - family_name
-            username_claim:
-              - preferred_username
-            groups_claim:
-              - groups
-            superuser_group_names:
-              - "administrators"
-            oidc_rp_scopes_list:
-              - openid
-              - email
-              - profile
-            endpoint_config:
-              oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/
-            userinfo_claims_source: id_token
-            oidc_rp_client_id: objecten
-            oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7
-            oidc_rp_sign_algo: RS256
-            make_users_staff: true
-            sync_groups: true
-      zgw_consumers_config_enable: true
-      zgw_consumers:
-        services:
-          - identifier: objecttypen-api
-            label: Objecttypen API
-            api_root: https://ontw-objecttypen.dimpact.info.nl/api/v2/
-            api_type: orc
-            auth_type: api_key
-            header_key: Authorization
-            header_value: Token 6a5b7aed0b1be90a80696791bfb34a01e385b0f2
-          - identifier: notificaties-api
-            label: Notificaties API
-            api_root: https://ontw-notificaties.dimpact.info.nl/api/v1/
-            api_type: nrc
-            auth_type: zgw
-            client_id: notificaties
-            secret: qaKTjCHewaRXSWdGix3xG
-          - identifier: autorisaties-api
-            label: Open Zaak - Autorisaties API
-            api_root: https://ontw-openzaak.dimpact.info.nl/autorisaties/api/v1/
-            api_type: ac
-            auth_type: zgw
-            client_id: objecten
-            secret: IjhZjJwGZkINC46uky
-      objecttypes_config_enable: true
-      objecttypes:
-        items:
-          - uuid: 90984726-2692-49d8-8f9d-742075cb761d
-            name: Medewerker
-            service_identifier: objecttypen-api
-          - uuid: c8d301f9-80b8-4575-8b29-3e9431f92994
-            name: Afdeling
-            service_identifier: objecttypen-api
-          - uuid: cbec27ac-157b-490b-b586-9e8a8f5bbb85
-            name: Groep
-            service_identifier: objecttypen-api
-          - uuid: 72240cd6-29bb-4a66-b1c3-ab6589a39a22
-            name: InterneTaak
-            service_identifier: objecttypen-api
-          - uuid: e4d2e353-80ea-4962-8276-920d59a3e8de
-            name: Kennisartikel
-            service_identifier: objecttypen-api
-          - uuid: 6a0d8f9d-f7e2-4e57-a91b-01656968a62d
-            name: VAC
-            service_identifier: objecttypen-api
-          - uuid: 11a5f7fd-013e-4e29-9cd1-738249fc3479
-            name: Productaanvraag-Dimpact
-            service_identifier: objecttypen-api
-          - uuid: 902164b3-3af8-4e41-836e-cf33ee060ea8
-            name: Productaanvraag-eSuite
-            service_identifier: objecttypen-api
-      notifications_config_enable: true
-      notifications_config:
-        notifications_api_service_identifier: notificaties-api
-        notification_delivery_max_retries: 5
-        notification_delivery_retry_backoff: 3
-        notification_delivery_retry_backoff_max: 48
-      tokenauth_config_enable: true
-      tokenauth:
-        items:
-          - identifier: integratieteam
-            token: 88d54b7d8500175894ca59d5e0d3b06fe69bb31d
-            contact_person: Integratieteam
-            email: servicedesk@dimpact.nl
-            is_superuser: true
-          - identifier: zaak
-            token: cd63e158f3aca276ef284e3033d020a22899c728
-            contact_person: Dimpact
-            email: servicedesk@dimpact.nl
-            permissions:
-              - object_type: 11a5f7fd-013e-4e29-9cd1-738249fc3479
-                mode: read_and_write
-          - identifier: contact
-            token: 0de4b0a6679080f83bb3e1e9730fa710ee1129f6
-            contact_person: Dimpact
-            email: servicedesk@dimpact.nl
-            application: "Contact"
-            permissions:
-              - object_type: 90984726-2692-49d8-8f9d-742075cb761d
-                mode: read_and_write
-              - object_type: c8d301f9-80b8-4575-8b29-3e9431f92994
-                mode: read_and_write
-              - object_type: cbec27ac-157b-490b-b586-9e8a8f5bbb85
-                mode: read_and_write
-              - object_type: 72240cd6-29bb-4a66-b1c3-ab6589a39a22
-                mode: read_and_write
-              - object_type: e4d2e353-80ea-4962-8276-920d59a3e8de
-                mode: read_and_write
-              - object_type: 6a0d8f9d-f7e2-4e57-a91b-01656968a62d
-                mode: read_and_write
-          - identifier: esuite
-            token: 7ab44560519588c61c33a22c52131c208d959cdc
-            contact_person: Dimpact
-            email: servicedesk@dimpact.nl
-            application: "e-Suite"
-            permissions: 
-              - object_type: 90984726-2692-49d8-8f9d-742075cb761d
-                mode: read_and_write
-              - object_type: c8d301f9-80b8-4575-8b29-3e9431f92994
-                mode: read_and_write
-              - object_type: cbec27ac-157b-490b-b586-9e8a8f5bbb85
-                mode: read_and_write
-              - object_type: 6a0d8f9d-f7e2-4e57-a91b-01656968a62d
-                mode: read_only
-              - object_type: 902164b3-3af8-4e41-836e-cf33ee060ea8
-                mode: read_and_write
-          - identifier: formulier
-            token: dbac032684e7cac6ccad8d5b6fe19c11e502ed54
-            contact_person: Dimpact
-            email: servicedesk@dimpact.nl
-            permissions:
-              - object_type: 11a5f7fd-013e-4e29-9cd1-738249fc3479
-                mode: read_and_write
-      sites_config_enable: true
-      sites_config:
-        items:
-        - domain: ontw-objecten.dimpact.info.nl
-          name: "Objecten op Ontwikkelomgeving INFO"
-  settings:
-    allowedHosts: ontw-objecten.dimpact.info.nl,objecten.podiumd.svc.cluster.local
-    database:
-      name: objecten
-      username: objecten
-      password: "sm5aSFLSUXWnEIqUtkLavQPJJXrbHBGu"
-    secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    email:
-      host: mail.enschede.nl
-      defaultFrom: "noreply@info.nl"
-    isHttps: true
-    disable2fa: true
-    sentry:
-      dsn: "https://bd162cb1c9d041a98b438f0974902d20@sentry.maykinmedia.nl/355"
-    environment: dimpact-info-ontw
-  image:
-    repository: acrprodmgmt.azurecr.io/objecten
-  nodeSelector:
-    agentpool: userpool
-  persistence:
-    existingClaim: "placeholder"
-    size: "PLACEHOLDER"
-  persistentVolume:
-    volumeAttributeShareName: "PLACEHOLDER"
-  worker:
-    livenessProbe:
-      exec:
-        command:
-          - /bin/bash
-          - -c
-          - celery inspect ping --destination celery@${HOSTNAME} | grep -q OK
-      initialDelaySeconds: 60
-      periodSeconds: 10
-      timeoutSeconds: 10
-      failureThreshold: 3
-      successThreshold: 1
-  redis:
-    image:
-      repository: redis
-    master:
-      nodeSelector:
-        agentpool: userpool
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: managed-csi
 
 objecttypen:
   enabled: false
-  serviceAccount:
-    create: false
-  create_required_objecttypen_job:
-    enabled: true
-  configuration:
-    enabled: true
-    oidcUrl: "https://ontw-objecttypen.dimpact.info.nl"
-    oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    token: "88d54b7d8500175894ca59d5e0d3b06fe69bb31d"
-    job:
-      enabled: true
-    initContainer:
-      enabled: false
-    data: |
-      oidc_db_config_enable: true
-      oidc_db_config_admin_auth:
-        items:
-          - identifier: admin-oidc
-            enabled: true
-            claim_mapping:
-              email:
-                - email
-              first_name:
-                - given_name
-              last_name:
-                - family_name
-            username_claim:
-              - preferred_username
-            groups_claim:
-              - groups
-            superuser_group_names:
-              - "administrators"
-            oidc_rp_scopes_list:
-              - openid
-              - email
-              - profile
-            endpoint_config:
-              oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/
-            oidc_rp_client_id: objecttypen
-            oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7
-            userinfo_claims_source: id_token
-            oidc_rp_sign_algo: RS256
-            make_users_staff: true
-            sync_groups: true
-      tokenauth_config_enable: true
-      tokenauth:
-        items:
-          - identifier: integratieteam
-            token: 88d54b7d8500175894ca59d5e0d3b06fe69bb31d
-            contact_person: Integratieteam
-            email: servicedesk@dimpact.nl
-          - identifier: objecten
-            token: 6a5b7aed0b1be90a80696791bfb34a01e385b0f2
-            contact_person: Dimpact
-            email: servicedesk@dimpact.nl
-          - identifier: zaak
-            token: 31c25ba1d8c20d74d30017c7f8808d649a8fabbb
-            contact_person: Dimpact
-            email: servicedesk@dimpact.nl
-      sites_config_enable: true
-      sites_config:
-        items:
-        - domain: ontw-objecttypen.dimpact.info.nl
-          name: "Objecttypen op Ontwikkelomgeving INFO"
-  settings:
-    allowedHosts: "ontw-objecttypen.dimpact.info.nl,objecttypen.podiumd.svc.cluster.local"
-    database:
-      name: objecttypen
-      username: objecttypen
-      password: "nvVFX1lpZIxTgeBusMo8CueH9jVBc2De"
-    secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    email:
-      host: mail.enschede.nl
-      defaultFrom: "noreply@info.nl"
-    disable2fa: true
-    sentry:
-      dsn: "https://1238522925b24a07a69bdfbba75ec295@sentry.maykinmedia.nl/356"
-    environment: dimpact-info-ontw
-  image:
-    repository: acrprodmgmt.azurecr.io/objecttypen
-    tag: "PLACEHOLDER"
-  nodeSelector:
-    agentpool: userpool
-  redis:
-    image:
-      repository: redis
-    master:
-      nodeSelector:
-        agentpool: userpool
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: managed-csi
-
-# OPENARCHIEFBEHEER #
-openarchiefbeheer:
-  enabled: false
   configuration:
     enabled: false
-    oidcUrl: "https://ontw-abc.dimpact.info.nl"
-    oidcSecret: "abc"
-    job:
-      enabled: false
+  create_required_objecttypen_job:
+    enabled: false
+
+openarchiefbeheer:
+  enabled: false
+
+openklant:
+  enabled: false
+
+zac:
+  enabled: false
+
+clamav:
+  enabled: false
+
+brppersonenmock:
+  enabled: false
+
+apiproxy:
+  enabled: false
+
+# infinispan:
+#   enabled: false
+#   images:
+#     server: acrprodmgmt.azurecr.io/infinispan-server:15.1
+#     initContainer: acrprodmgmt.azurecr.io/busybox:1.28.0-glibc
+#   nodeSelector:
+#     agentpool: userpool
+#   deploy:
+#     nameOverride: ispn
+#     replicas: 2
+#     container:
+#       storage:
+#         storageClassName: podiumd-standard
+#     security:
+#       secretName: ispn-generated-secret
+#       monitor:
+#         secret: "PLACEHOLDER"
+#       batch: |
+#         credentials add keystore -c password -p secret --path="internal-credentials.pfx"
+#         user create keycloak -p yGzED95riA8hx5O2FID56aYI97UMSdbA -g deployer
+#         user create admin -p Zr91kKDPsdqPrGjY81vMezHzSAj5m4SG -g admin
+#     ssl:
+#       endpointSecretName: "ispn-secret"
+#       transportSecretName: "ispn-transport-secret"
+
+# openzaak:
+  # enabled: false
+  # create_required_catalogi_job:
+    # client_id: integratieteam
+    # secret: "8IDlsFxbtqauJKwS4PI"
+    # enabled: true
+    # e2eTestZaaktype:
+      # create: "PLACEHOLDER"
+  # configuration:
+    # enabled: true
+    # oidcUrl: "https://ontw-openzaak.dimpact.info.nl"
+    # oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # notificatiesAuthorization:
+      # enabled: false
+    # notificaties:
+      # enabled: false
+    # initContainer:
+      # enabled: false
+    # job:
+      # enabled: true
+    # data: |
+      # oidc_db_config_enable: true
+      # oidc_db_config_admin_auth:
+        # items:
+          # - identifier: admin-oidc
+            # enabled: true
+            # claim_mapping:
+              # email:
+                # - email
+              # first_name:
+                # - given_name
+              # last_name:
+              # - family_name
+            # username_claim:
+              # - preferred_username
+            # groups_claim:
+              # - groups
+            # superuser_group_names:
+              # - "administrators"
+            # oidc_rp_scopes_list:
+              # - openid
+              # - email
+              # - profile
+            # endpoint_config: 
+              # oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/
+            # userinfo_claims_source: id_token
+            # oidc_rp_client_id: openzaak
+            # oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7
+            # oidc_rp_sign_algo: RS256
+            # make_users_staff: true
+            # sync_groups: true
+      # zgw_consumers_config_enable: true
+      # zgw_consumers:
+        # services:
+        # - identifier: notificaties-api
+          # label: Open Notificaties
+          # api_root: https://ontw-notificaties.dimpact.info.nl/api/v1/
+          # api_type: nrc
+          # auth_type: zgw
+          # client_id: zaak
+          # secret: wRaVDs7NzKbRcz
+        # - identifier: objecten-api
+          # label: Objecten API
+          # api_root: https://ontw-objecten.dimpact.info.nl/api/v2/
+          # api_type: orc
+          # auth_type: api_key
+          # header_key: Authorization
+          # header_value: Token 88d54b7d8500175894ca59d5e0d3b06fe69bb31d
+        # - identifier: autorisaties-api
+          # label: Open Zaak - Autorisaties
+          # api_root: https://ontw-openzaak.dimpact.info.nl/autorisaties/api/v1/
+          # api_type: ac
+          # auth_type: zgw
+          # client_id: zaak
+          # secret: wRaVDs7NzKbRcz
+      # vng_api_common_credentials_config_enable: true
+      # vng_api_common_credentials:
+        # items:
+          # - identifier: zaak
+            # secret: wRaVDs7NzKbRcz
+          # - identifier: zac
+            # secret: ERYe7BOTMRaLQcVECNhJEpdouuVDd6RD
+          # - identifier: notificaties
+            # secret: 9Ri4H6toPvyvsrtsjdp
+          # - identifier: objecten
+            # secret: qaKTjCHewaRXSWdGix3xG
+          # - identifier: integratieteam
+            # secret: 8IDlsFxbtqauJKwS4PI
+      # vng_api_common_applicaties_config_enable: true
+      # vng_api_common_applicaties:
+        # items:
+          # - uuid: 6bf5bfb4-e76b-469f-b993-4aedb832b61f
+            # client_ids:
+              # - zaak
+            # heeft_alle_autorisaties: true
+            # label: Zaak
+          # - uuid: 4b305285-64c4-484a-8db4-2f66996d4760
+            # client_ids:
+              # - zac
+            # heeft_alle_autorisaties: true
+            # label: Zaakafhandelcomponent
+          # - uuid: c5989254-922d-43f9-a32a-3fa2a44f6230
+            # client_ids:
+              # - notificaties
+            # heeft_alle_autorisaties: true
+            # label: Notificaties
+          # - uuid: d0782c50-9cc2-4aa3-86e6-03e1cfb29813
+            # client_ids:
+              # - objecten
+            # heeft_alle_autorisaties: true
+            # label: Objecten
+          # - uuid: 3595eece-ba8a-47c9-a388-496086c9677f
+            # client_ids:
+              # - integratieteam
+            # heeft_alle_autorisaties: true
+            # label: Integratieteam
+      # notifications_config_enable: true
+      # notifications_config:
+        # notifications_api_service_identifier: notificaties-api
+        # notification_delivery_max_retries: 5
+        # notification_delivery_retry_backoff: 3
+        # notification_delivery_retry_backoff_max: 48
+      # sites_config_enable: true
+      # sites_config:
+        # items:
+        # - domain: ontw-openzaak.dimpact.info.nl
+          # name: "Open Zaak op Ontwikkelomgeving INFO"
+  # settings:
+    # allowedHosts: ontw-openzaak.dimpact.info.nl,openzaak-nginx.podiumd.svc.cluster.local
+    # email:
+      # host: mail.enschede.nl
+      # defaultFrom: "noreply@info.nl"
+    # database:
+      # name: openzaak
+      # username: openzaak
+      # password: "7kGdVlRrh5qxvzAjPbFqbDLsHLS2Cetm"
+    # secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # isHttps: true
+    # disable2fa: true
+    # sentry:
+      # dsn: "https://3dc6dcc6b98241d4b9b39e8f4debd29d@sentry.maykinmedia.nl/351"
+    # environment: dimpact-info-ontw
+    # numProxies: 2
+  # image:
+    # repository: acrprodmgmt.azurecr.io/openzaak
+  # nodeSelector:
+    # agentpool: userpool
+  # persistence:
+    # existingClaim: "placeholder"
+    # size: "PLACEHOLDER"
+  # persistentVolume:
+    # volumeAttributeShareName: "PLACEHOLDER"
+  # nginx:
+    # image:
+      # repository: acrprodmgmt.azurecr.io/nginx
+      # tag: stable
+  # redis:
+    # image:
+      # repository: redis
+    # master:
+      # nodeSelector:
+        # agentpool: userpool
+      # persistence:
+        # enabled: true
+        # size: 8Gi
+        # storageClass: managed-csi
+
+# opennotificaties:
+  # enabled: false
+  # configuration:
+    # enabled: true
+    # http_request_job:
+      # enabled: false
+    # initContainer:
+      # enabled: false
+    # job:
+      # enabled: true
+    # oidcUrl: "https://ontw-notificaties.dimpact.info.nl"
+    # oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # data: |
+      # oidc_db_config_enable: true
+      # oidc_db_config_admin_auth:
+        # items:
+          # - identifier: admin-oidc
+            # enabled: true
+            # claim_mapping:
+              # email:
+                # - email
+              # first_name:
+                # - given_name
+              # last_name:
+                # - family_name
+            # username_claim:
+              # - preferred_username
+            # groups_claim:
+              # - groups
+            # superuser_group_names:
+              # - "administrators"
+            # oidc_rp_scopes_list:
+              # - openid
+              # - email
+              # - profile
+            # endpoint_config:
+              # oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/
+            # userinfo_claims_source: id_token
+            # oidc_rp_client_id: opennotificaties
+            # oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7
+            # oidc_rp_sign_algo: RS256
+            # make_users_staff: true
+            # sync_groups: true
+      # sites_config_enable: true
+      # sites_config:
+        # items:
+          # - domain: ontw-notificaties.dimpact.info.nl
+            # name: "Open Notificaties op Ontwikkelomgeving INFO"
+      # zgw_consumers_config_enable: true
+      # zgw_consumers:
+        # services:
+          # - identifier: notificaties-api
+            # label: Notificaties API
+            # api_root: https://ontw-notificaties.dimpact.info.nl/api/v1/
+            # api_type: nrc
+            # auth_type: zgw
+            # client_id: notificaties
+            # secret: 9Ri4H6toPvyvsrtsjdp
+          # - identifier: autorisaties-api
+            # label: Open Zaak - Autorisaties API
+            # api_root: https://ontw-openzaak.dimpact.info.nl/autorisaties/api/v1/
+            # api_type: ac
+            # auth_type: zgw
+            # client_id: notificaties
+            # secret: 9Ri4H6toPvyvsrtsjdp
+      # vng_api_common_credentials_config_enable: true
+      # vng_api_common_credentials:
+        # items:
+          # - identifier: zaak
+            # secret: wRaVDs7NzKbRcz
+          # - identifier: notificaties
+            # secret: 9Ri4H6toPvyvsrtsjdp
+          # - identifier: objecten
+            # secret: qaKTjCHewaRXSWdGix3xG
+      # autorisaties_api_config_enable: true
+      # autorisaties_api:
+        # authorizations_api_service_identifier: autorisaties-api
+      # notifications_config_enable: true
+      # notifications_config:
+        # notifications_api_service_identifier: notificaties-api
+        # notification_delivery_max_retries: 5
+        # notification_delivery_retry_backoff: 3
+        # notification_delivery_retry_backoff_max: 48
+      # notifications_kanalen_config_enable: true
+      # notifications_kanalen_config:
+        # items:
+        # - naam: autorisaties
+          # filters:
+          # - autorisaties
+        # - naam: besluittypen
+          # filters:
+          # - catalogus
+        # - naam: informatieobjecttypen
+          # filters:
+          # - catalogus
+        # - naam: zaaktypen
+          # filters:
+          # - catalogus
+        # - naam: zaken
+          # filters:
+          # - bronorganisatie
+          # - zaaktype
+          # - vertrouwelijkheidaanduiding
+        # - naam: documenten
+          # filters:
+          # - bronorganisatie
+          # - informatieobjecttype
+          # - vertrouwelijkheidaanduiding
+        # - naam: besluiten
+          # filters:
+          # - verantwoordelijke_organisatie
+          # - besluittype
+        # - naam: objecten
+          # filters:
+          # - object
+          # - object_type
+      # notifications_abonnementen_config_enable: true
+      # notifications_abonnementen_config:
+        # items:
+          # - uuid: b5d5abcb-b95c-4367-913e-6b90b28b9d8b
+            # callback_url: https://ontw-zac.dimpact.info.nl/rest/notificaties
+            # auth: Rk1vbyXy6T1Vtr2u8Gsm1GceCDOQ3Zt4
+            # kanalen:
+              # - naam: objecten
+              # - naam: zaken
+              # - naam: documenten
+              # - naam: besluiten
+              # - naam: zaaktypen
+          # - uuid: e6983a51-0315-4ed3-b991-b54eb363bec9
+            # callback_url: https://ontw-notificaties.dimpact.info.nl/api/v1/callbacks
+            # auth: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJub3RpZmljYXRpZXMiLCJpYXQiOjE3Mzk4ODcwOTIsImNsaWVudF9pZCI6Im5vdGlmaWNhdGllcyIsInVzZXJfaWQiOiIiLCJ1c2VyX3JlcHJlc2VudGF0aW9uIjoiIn0.1nL3fqoEkXC1hvp6KPo6fua9oZWxaznbw1qANCVJnoc
+            # kanalen:
+              # - naam: autorisaties
+  # settings:
+    # allowedHosts: ontw-notificaties.dimpact.info.nl,opennotificaties-nginx.podiumd.svc.cluster.local
+    # database:
+      # name: opennotificaties
+      # username: opennotificaties
+      # password: "C8MKIeDqofwFm0YwiL48JSzN9cFyllfo"
+    # secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # email:
+      # host: mail.enschede.nl
+      # defaultFrom: "noreply@info.nl"
+    # isHttps: true
+    # disable2fa: true
+    # sentry:
+      # dsn: "https://3ed5e2a0c17b4e86bbe32e00774a75c2@sentry.maykinmedia.nl/352"
+    # environment: dimpact-info-ontw
+    # numProxies: 2
+  # image:
+    # repository: acrprodmgmt.azurecr.io/opennotificaties
+  # nodeSelector:
+    # agentpool: userpool
+  # persistence:
+    # existingClaim: "placeholder"
+    # size: "PLACEHOLDER"
+  # persistentVolume:
+    # volumeAttributeShareName: "PLACEHOLDER"
+  # rabbitmq:
+    # auth:
+      # password: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # image:
+      # repository: rabbitmq
+    # nodeSelector:
+      # agentpool: userpool
+  # redis:
+    # image:
+      # repository: redis
+    # master:
+      # nodeSelector:
+        # agentpool: userpool
+      # persistence:
+        # enabled: true
+        # size: 8Gi
+        # storageClass: managed-csi
+
+# objecten:
+  # enabled: false
+  # configuration:
+    # enabled: true
+    # demo:
+      # enabled: false
+    # oidcUrl: "https://ontw-objecten.dimpact.info.nl"
+    # oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # job:
+      # enabled: true
+    # initContainer:
+      # enabled: false
+    # data: |
+      # oidc_db_config_enable: true
+      # oidc_db_config_admin_auth:
+        # items:
+          # - identifier: admin-oidc
+            # enabled: true
+            # claim_mapping:
+              # email:
+                # - email
+              # first_name:
+                # - given_name
+              # last_name:
+                # - family_name
+            # username_claim:
+              # - preferred_username
+            # groups_claim:
+              # - groups
+            # superuser_group_names:
+              # - "administrators"
+            # oidc_rp_scopes_list:
+              # - openid
+              # - email
+              # - profile
+            # endpoint_config:
+              # oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/
+            # userinfo_claims_source: id_token
+            # oidc_rp_client_id: objecten
+            # oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7
+            # oidc_rp_sign_algo: RS256
+            # make_users_staff: true
+            # sync_groups: true
+      # zgw_consumers_config_enable: true
+      # zgw_consumers:
+        # services:
+          # - identifier: objecttypen-api
+            # label: Objecttypen API
+            # api_root: https://ontw-objecttypen.dimpact.info.nl/api/v2/
+            # api_type: orc
+            # auth_type: api_key
+            # header_key: Authorization
+            # header_value: Token 6a5b7aed0b1be90a80696791bfb34a01e385b0f2
+          # - identifier: notificaties-api
+            # label: Notificaties API
+            # api_root: https://ontw-notificaties.dimpact.info.nl/api/v1/
+            # api_type: nrc
+            # auth_type: zgw
+            # client_id: notificaties
+            # secret: qaKTjCHewaRXSWdGix3xG
+          # - identifier: autorisaties-api
+            # label: Open Zaak - Autorisaties API
+            # api_root: https://ontw-openzaak.dimpact.info.nl/autorisaties/api/v1/
+            # api_type: ac
+            # auth_type: zgw
+            # client_id: objecten
+            # secret: IjhZjJwGZkINC46uky
+      # objecttypes_config_enable: true
+      # objecttypes:
+        # items:
+          # - uuid: 90984726-2692-49d8-8f9d-742075cb761d
+            # name: Medewerker
+            # service_identifier: objecttypen-api
+          # - uuid: c8d301f9-80b8-4575-8b29-3e9431f92994
+            # name: Afdeling
+            # service_identifier: objecttypen-api
+          # - uuid: cbec27ac-157b-490b-b586-9e8a8f5bbb85
+            # name: Groep
+            # service_identifier: objecttypen-api
+          # - uuid: 72240cd6-29bb-4a66-b1c3-ab6589a39a22
+            # name: InterneTaak
+            # service_identifier: objecttypen-api
+          # - uuid: e4d2e353-80ea-4962-8276-920d59a3e8de
+            # name: Kennisartikel
+            # service_identifier: objecttypen-api
+          # - uuid: 6a0d8f9d-f7e2-4e57-a91b-01656968a62d
+            # name: VAC
+            # service_identifier: objecttypen-api
+          # - uuid: 11a5f7fd-013e-4e29-9cd1-738249fc3479
+            # name: Productaanvraag-Dimpact
+            # service_identifier: objecttypen-api
+          # - uuid: 902164b3-3af8-4e41-836e-cf33ee060ea8
+            # name: Productaanvraag-eSuite
+            # service_identifier: objecttypen-api
+      # notifications_config_enable: true
+      # notifications_config:
+        # notifications_api_service_identifier: notificaties-api
+        # notification_delivery_max_retries: 5
+        # notification_delivery_retry_backoff: 3
+        # notification_delivery_retry_backoff_max: 48
+      # tokenauth_config_enable: true
+      # tokenauth:
+        # items:
+          # - identifier: integratieteam
+            # token: 88d54b7d8500175894ca59d5e0d3b06fe69bb31d
+            # contact_person: Integratieteam
+            # email: servicedesk@dimpact.nl
+            # is_superuser: true
+          # - identifier: zaak
+            # token: cd63e158f3aca276ef284e3033d020a22899c728
+            # contact_person: Dimpact
+            # email: servicedesk@dimpact.nl
+            # permissions:
+              # - object_type: 11a5f7fd-013e-4e29-9cd1-738249fc3479
+                # mode: read_and_write
+          # - identifier: contact
+            # token: 0de4b0a6679080f83bb3e1e9730fa710ee1129f6
+            # contact_person: Dimpact
+            # email: servicedesk@dimpact.nl
+            # application: "Contact"
+            # permissions:
+              # - object_type: 90984726-2692-49d8-8f9d-742075cb761d
+                # mode: read_and_write
+              # - object_type: c8d301f9-80b8-4575-8b29-3e9431f92994
+                # mode: read_and_write
+              # - object_type: cbec27ac-157b-490b-b586-9e8a8f5bbb85
+                # mode: read_and_write
+              # - object_type: 72240cd6-29bb-4a66-b1c3-ab6589a39a22
+                # mode: read_and_write
+              # - object_type: e4d2e353-80ea-4962-8276-920d59a3e8de
+                # mode: read_and_write
+              # - object_type: 6a0d8f9d-f7e2-4e57-a91b-01656968a62d
+                # mode: read_and_write
+          # - identifier: esuite
+            # token: 7ab44560519588c61c33a22c52131c208d959cdc
+            # contact_person: Dimpact
+            # email: servicedesk@dimpact.nl
+            # application: "e-Suite"
+            # permissions: 
+              # - object_type: 90984726-2692-49d8-8f9d-742075cb761d
+                # mode: read_and_write
+              # - object_type: c8d301f9-80b8-4575-8b29-3e9431f92994
+                # mode: read_and_write
+              # - object_type: cbec27ac-157b-490b-b586-9e8a8f5bbb85
+                # mode: read_and_write
+              # - object_type: 6a0d8f9d-f7e2-4e57-a91b-01656968a62d
+                # mode: read_only
+              # - object_type: 902164b3-3af8-4e41-836e-cf33ee060ea8
+                # mode: read_and_write
+          # - identifier: formulier
+            # token: dbac032684e7cac6ccad8d5b6fe19c11e502ed54
+            # contact_person: Dimpact
+            # email: servicedesk@dimpact.nl
+            # permissions:
+              # - object_type: 11a5f7fd-013e-4e29-9cd1-738249fc3479
+                # mode: read_and_write
+      # sites_config_enable: true
+      # sites_config:
+        # items:
+        # - domain: ontw-objecten.dimpact.info.nl
+          # name: "Objecten op Ontwikkelomgeving INFO"
+  # settings:
+    # allowedHosts: ontw-objecten.dimpact.info.nl,objecten.podiumd.svc.cluster.local
+    # database:
+      # name: objecten
+      # username: objecten
+      # password: "sm5aSFLSUXWnEIqUtkLavQPJJXrbHBGu"
+    # secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # email:
+      # host: mail.enschede.nl
+      # defaultFrom: "noreply@info.nl"
+    # isHttps: true
+    # disable2fa: true
+    # sentry:
+      # dsn: "https://bd162cb1c9d041a98b438f0974902d20@sentry.maykinmedia.nl/355"
+    # environment: dimpact-info-ontw
+  # image:
+    # repository: acrprodmgmt.azurecr.io/objecten
+  # nodeSelector:
+    # agentpool: userpool
+  # persistence:
+    # existingClaim: "placeholder"
+    # size: "PLACEHOLDER"
+  # persistentVolume:
+    # volumeAttributeShareName: "PLACEHOLDER"
+  # worker:
+    # livenessProbe:
+      # exec:
+        # command:
+          # - /bin/bash
+          # - -c
+          # - celery inspect ping --destination celery@${HOSTNAME} | grep -q OK
+      # initialDelaySeconds: 60
+      # periodSeconds: 10
+      # timeoutSeconds: 10
+      # failureThreshold: 3
+      # successThreshold: 1
+  # redis:
+    # image:
+      # repository: redis
+    # master:
+      # nodeSelector:
+        # agentpool: userpool
+      # persistence:
+        # enabled: true
+        # size: 8Gi
+        # storageClass: managed-csi
+
+# objecttypen:
+  # enabled: false
+  # serviceAccount:
+    # create: false
+  # create_required_objecttypen_job:
+    # enabled: true
+  # configuration:
+    # enabled: true
+    # oidcUrl: "https://ontw-objecttypen.dimpact.info.nl"
+    # oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # token: "88d54b7d8500175894ca59d5e0d3b06fe69bb31d"
+    # job:
+      # enabled: true
+    # initContainer:
+      # enabled: false
+    # data: |
+      # oidc_db_config_enable: true
+      # oidc_db_config_admin_auth:
+        # items:
+          # - identifier: admin-oidc
+            # enabled: true
+            # claim_mapping:
+              # email:
+                # - email
+              # first_name:
+                # - given_name
+              # last_name:
+                # - family_name
+            # username_claim:
+              # - preferred_username
+            # groups_claim:
+              # - groups
+            # superuser_group_names:
+              # - "administrators"
+            # oidc_rp_scopes_list:
+              # - openid
+              # - email
+              # - profile
+            # endpoint_config:
+              # oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/
+            # oidc_rp_client_id: objecttypen
+            # oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7
+            # userinfo_claims_source: id_token
+            # oidc_rp_sign_algo: RS256
+            # make_users_staff: true
+            # sync_groups: true
+      # tokenauth_config_enable: true
+      # tokenauth:
+        # items:
+          # - identifier: integratieteam
+            # token: 88d54b7d8500175894ca59d5e0d3b06fe69bb31d
+            # contact_person: Integratieteam
+            # email: servicedesk@dimpact.nl
+          # - identifier: objecten
+            # token: 6a5b7aed0b1be90a80696791bfb34a01e385b0f2
+            # contact_person: Dimpact
+            # email: servicedesk@dimpact.nl
+          # - identifier: zaak
+            # token: 31c25ba1d8c20d74d30017c7f8808d649a8fabbb
+            # contact_person: Dimpact
+            # email: servicedesk@dimpact.nl
+      # sites_config_enable: true
+      # sites_config:
+        # items:
+        # - domain: ontw-objecttypen.dimpact.info.nl
+          # name: "Objecttypen op Ontwikkelomgeving INFO"
+  # settings:
+    # allowedHosts: "ontw-objecttypen.dimpact.info.nl,objecttypen.podiumd.svc.cluster.local"
+    # database:
+      # name: objecttypen
+      # username: objecttypen
+      # password: "nvVFX1lpZIxTgeBusMo8CueH9jVBc2De"
+    # secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # email:
+      # host: mail.enschede.nl
+      # defaultFrom: "noreply@info.nl"
+    # disable2fa: true
+    # sentry:
+      # dsn: "https://1238522925b24a07a69bdfbba75ec295@sentry.maykinmedia.nl/356"
+    # environment: dimpact-info-ontw
+  # image:
+    # repository: acrprodmgmt.azurecr.io/objecttypen
+    # tag: "PLACEHOLDER"
+  # nodeSelector:
+    # agentpool: userpool
+  # redis:
+    # image:
+      # repository: redis
+    # master:
+      # nodeSelector:
+        # agentpool: userpool
+      # persistence:
+        # enabled: true
+        # size: 8Gi
+        # storageClass: managed-csi
+
+# OPENARCHIEFBEHEER #
+# openarchiefbeheer:
+  # enabled: false
+  # configuration:
+    # enabled: false
+    # oidcUrl: "https://ontw-abc.dimpact.info.nl"
+    # oidcSecret: "abc"
+    # job:
+      # enabled: false
 #     data: ""
 #     # data: |-
 #     #   zgw_consumers_config_enable: true
@@ -880,64 +934,64 @@ openarchiefbeheer:
 #     #         oidc_op_discovery_endpoint: https://example.keycloak.nl/realms/podiumd-poc/
   # tags:
   #   redis: true
-  image:
+  # image:
     # tag: "1.0.0"
-    repository: acrprodmgmt.azurecr.io/openarchiefbeheer
-  nodeSelector:
-    agentpool: userpool
+    # repository: acrprodmgmt.azurecr.io/openarchiefbeheer
+  # nodeSelector:
+    # agentpool: userpool
   # persistence:
     # enabled: true
     # size: 10Gi
     # existingClaim: openarchiefbeheer
     # storageClassName: ""
-  settings:
-    allowedHosts: "ontw-abc.dimpact.info.nl,openarchiefbeheer-nginx.podiumd.svc.cluster.local"
-    database:
-      host: "psql-ontw-info.postgres.database.azure.com" # TODO Wordt niet gevuld vanuit default
+  # settings:
+    # allowedHosts: "ontw-abc.dimpact.info.nl,openarchiefbeheer-nginx.podiumd.svc.cluster.local"
+    # database:
+      # host: "psql-ontw-info.postgres.database.azure.com" # TODO Wordt niet gevuld vanuit default
       # port: 5432
-      name: openarchiefbeheer
-      username: openarchiefbeheer
-      password: "18YQ6i6uTYU5w0SeyMpkonMpsvtFz3Zi"
-    cors:
-      allowAllOrigins: false
-      allowedOrigins:
-        - "https://ontw-abc.dimpact.info.nl"
-    isHttps: true
-    twoFactorAuthentication:
-      forceOtpAdmin: false
-      patchAdmin: false
-    sentry:
-      dsn: "https://4d81fe2f253f483b9ed6af28016d17e1@sentry.maykinmedia.nl/426"
-    environment: "dimpact-info-ontw"
+      # name: openarchiefbeheer
+      # username: openarchiefbeheer
+      # password: "18YQ6i6uTYU5w0SeyMpkonMpsvtFz3Zi"
+    # cors:
+      # allowAllOrigins: false
+      # allowedOrigins:
+        # - "https://ontw-abc.dimpact.info.nl"
+    # isHttps: true
+    # twoFactorAuthentication:
+      # forceOtpAdmin: false
+      # patchAdmin: false
+    # sentry:
+      # dsn: "https://4d81fe2f253f483b9ed6af28016d17e1@sentry.maykinmedia.nl/426"
+    # environment: "dimpact-info-ontw"
     # frontend:
     #   apiUrl: ""
     #   apiPath: "/api/v1"
-    frontendUrl: "https://ontw-abc.dimpact.info.nl"
-  nginx:
-    image:
-      repository: acrprodmgmt.azurecr.io/nginx
-      tag: stable
-  redis:
-    image:
-      repository: redis
-    master:
-      nodeSelector:
-        agentpool: userpool
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: managed-csi
+    # frontendUrl: "https://ontw-abc.dimpact.info.nl"
+  # nginx:
+    # image:
+      # repository: acrprodmgmt.azurecr.io/nginx
+      # tag: stable
+  # redis:
+    # image:
+      # repository: redis
+    # master:
+      # nodeSelector:
+        # agentpool: userpool
+      # persistence:
+        # enabled: true
+        # size: 8Gi
+        # storageClass: managed-csi
 
-openklant:
-  enabled: false
-  configuration:
-    enabled: false
-    oidcUrl: "https://ontw-openklant.dimpact.info.nl"
-    oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    initContainer:
-      enabled: false
-    job:
-      enabled: false
+# openklant:
+  # enabled: false
+  # configuration:
+    # enabled: false
+    # oidcUrl: "https://ontw-openklant.dimpact.info.nl"
+    # oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # initContainer:
+      # enabled: false
+    # job:
+      # enabled: false
     #   backoffLimit: 6
     #   ttlSecondsAfterFinished: 0
     #   restartPolicy: OnFailure
@@ -1005,52 +1059,52 @@ openklant:
     # #         organization: Organization XYZ
     # #         application: Application XYZ
     # #         administration: Administration XYZ
-  settings:
-    allowedHosts: "ontw-openklant.dimpact.info.nl,openklant.podiumd.svc.cluster.local"
-    database:
-      name: openklant
-      username: openklant
-      password: "zQTPt4itzF9o4WTAAjYEPyaoNbYpCrfA"
-    secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    email:
-      host: mail.enschede.nl
-      defaultFrom: "noreply@info.nl"
-    isHttps: true
-    disable2fa: true
-    sentry:
-      dsn: "https://0a8c1739eb14402a89721e0b38bc32d5@sentry.maykinmedia.nl/369"
-    environment: dimpact-info-ontw
-  image:
-    repository: acrprodmgmt.azurecr.io/openklant
-  nodeSelector:
-    agentpool: userpool
-  persistence:
-    existingClaim: "placeholder"
-    size: "PLACEHOLDER"
-  persistentVolume:
-    volumeAttributeShareName: "PLACEHOLDER"
-  nginx:
-    image:
-      repository: acrprodmgmt.azurecr.io/nginx
-      tag: stable
-  redis:
-    image:
-      repository: redis
-    master:
-      nodeSelector:
-        agentpool: userpool
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: managed-csi
+  # settings:
+    # allowedHosts: "ontw-openklant.dimpact.info.nl,openklant.podiumd.svc.cluster.local"
+    # database:
+      # name: openklant
+      # username: openklant
+      # password: "zQTPt4itzF9o4WTAAjYEPyaoNbYpCrfA"
+    # secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # email:
+      # host: mail.enschede.nl
+      # defaultFrom: "noreply@info.nl"
+    # isHttps: true
+    # disable2fa: true
+    # sentry:
+      # dsn: "https://0a8c1739eb14402a89721e0b38bc32d5@sentry.maykinmedia.nl/369"
+    # environment: dimpact-info-ontw
+  # image:
+    # repository: acrprodmgmt.azurecr.io/openklant
+  # nodeSelector:
+    # agentpool: userpool
+  # persistence:
+    # existingClaim: "placeholder"
+    # size: "PLACEHOLDER"
+  # persistentVolume:
+    # volumeAttributeShareName: "PLACEHOLDER"
+  # nginx:
+    # image:
+      # repository: acrprodmgmt.azurecr.io/nginx
+      # tag: stable
+  # redis:
+    # image:
+      # repository: redis
+    # master:
+      # nodeSelector:
+        # agentpool: userpool
+      # persistence:
+        # enabled: true
+        # size: 8Gi
+        # storageClass: managed-csi
 
-openformulieren:
-  enabled: false
-  configuration:
-    oidcUrl: "https://ontw-formulier.dimpact.info.nl"
-    oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    job:
-      enabled: false
+# openformulieren:
+  # enabled: false
+  # configuration:
+    # oidcUrl: "https://ontw-formulier.dimpact.info.nl"
+    # oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # job:
+      # enabled: false
     #   backoffLimit: 6
     #   ttlSecondsAfterFinished: 0    
     #   restartPolicy: OnFailure
@@ -1151,69 +1205,69 @@ openformulieren:
     # #       catalogue_domain: TEST
     # #       catalogue_rsin: "000000000"
     # #       organisatie_rsin: "000000000"
-  extraVolumes:
-    - name: verify-certs
-      configMap:
-        name: openformulieren-verify-certs
-  extraVolumeMounts:
-    - name: verify-certs
-      mountPath: /etc/ssl/verify-certs
-  extraVerifyCerts: /etc/ssl/verify-certs/verify-certs.pem
-  settings:
-    allowedHosts: ontw-formulier.dimpact.info.nl,openformulieren-nginx.podiumd.svc.cluster.local
-    baseUrl: "https://ontw-formulier.dimpact.info.nl"
-    database:
-      name: openformulieren
-      username: openformulieren
-      password: "dLFwDZCEZcR0BEAeUMSKNoWP047qKn1t"
-    secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    email:
-      host: mail.enschede.nl
-      defaultFrom: "noreply@info.nl"
-    isHttps: true
-    sentry:
-      dsn: "https://862c93bda886484b9de57bb73c02d69a@sentry.maykinmedia.nl/407"
-    environment: dimpact-info-ontw
-    cors:
-      allowAllOrigins: false
-      allowedOrigins:
-        - "https://ontw-formulier.dimpact.info.nl"
-    csp:
-      reportSave: true
-    numProxies: 2
-  image:
-    repository: acrprodmgmt.azurecr.io/openformulieren
-  nodeSelector:
-    agentpool: userpool
-  persistence:
-    existingClaim: "placeholder"
-    size: "PLACEHOLDER"
-  persistentVolume:
-    volumeAttributeShareName: "PLACEHOLDER"
-  nginx:
-    image:
-      repository: acrprodmgmt.azurecr.io/nginx
-      tag: stable
-  redis:
-    image:
-      repository: redis
-    master:
-      nodeSelector:
-        agentpool: userpool
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: managed-csi
+  # extraVolumes:
+    # - name: verify-certs
+      # configMap:
+        # name: openformulieren-verify-certs
+  # extraVolumeMounts:
+    # - name: verify-certs
+      # mountPath: /etc/ssl/verify-certs
+  # extraVerifyCerts: /etc/ssl/verify-certs/verify-certs.pem
+  # settings:
+    # allowedHosts: ontw-formulier.dimpact.info.nl,openformulieren-nginx.podiumd.svc.cluster.local
+    # baseUrl: "https://ontw-formulier.dimpact.info.nl"
+    # database:
+      # name: openformulieren
+      # username: openformulieren
+      # password: "dLFwDZCEZcR0BEAeUMSKNoWP047qKn1t"
+    # secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # email:
+      # host: mail.enschede.nl
+      # defaultFrom: "noreply@info.nl"
+    # isHttps: true
+    # sentry:
+      # dsn: "https://862c93bda886484b9de57bb73c02d69a@sentry.maykinmedia.nl/407"
+    # environment: dimpact-info-ontw
+    # cors:
+      # allowAllOrigins: false
+      # allowedOrigins:
+        # - "https://ontw-formulier.dimpact.info.nl"
+    # csp:
+      # reportSave: true
+    # numProxies: 2
+  # image:
+    # repository: acrprodmgmt.azurecr.io/openformulieren
+  # nodeSelector:
+    # agentpool: userpool
+  # persistence:
+    # existingClaim: "placeholder"
+    # size: "PLACEHOLDER"
+  # persistentVolume:
+    # volumeAttributeShareName: "PLACEHOLDER"
+  # nginx:
+    # image:
+      # repository: acrprodmgmt.azurecr.io/nginx
+      # tag: stable
+  # redis:
+    # image:
+      # repository: redis
+    # master:
+      # nodeSelector:
+        # agentpool: userpool
+      # persistence:
+        # enabled: true
+        # size: 8Gi
+        # storageClass: managed-csi
 
-openinwoner:
-  enabled: false
-  configuration:
-    oidcUrl: "https://ontw-mijn.dimpact.info.nl"
-    oidcSecret: "jbIihWfLaSDIpAyBocivJixHgSHU01gd"
-    initContainer:
-      enabled: false
-    job:
-      enabled: false
+# openinwoner:
+  # enabled: false
+  # configuration:
+    # oidcUrl: "https://ontw-mijn.dimpact.info.nl"
+    # oidcSecret: "jbIihWfLaSDIpAyBocivJixHgSHU01gd"
+    # initContainer:
+      # enabled: false
+    # job:
+      # enabled: false
     #   backoffLimit: 6
     #   ttlSecondsAfterFinished: 0
     #   restartPolicy: OnFailure
@@ -1319,400 +1373,400 @@ openinwoner:
     # #       - domain: openinwoner.example.nl
     # #         name: Gemeente X
     # secrets: {}
-  settings:
-    allowedHosts: "ontw-mijn.dimpact.info.nl,openinwoner-nginx.podiumd.svc.cluster.local"
-    digidMock: true
-    database:
-      name: openinwoner
-      username: openinwoner
-      password: "qUPo10ui9hXLF0520DFrDjLCJoWIJTDZ"
-    secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
-    email:
-      host: mail.enschede.nl
-      defaultFrom: "noreply@info.nl"
-    isHttps: true
-    numProxies: 2
-    sentry:
-      dsn: "https://0e04a71fe90446828f2aa544b73f1f17@sentry.maykinmedia.nl/354"
-    environment: dimpact-info-ontw
-    extraEnvVars:
-      - name: DIGID_METADATA
-        value: "/app/media/metadata"
-  image:
-    repository: acrprodmgmt.azurecr.io/openinwoner
-  nodeSelector:
-    agentpool: userpool
-  persistence:
-    existingClaim: "placeholder"
-    size: "PLACEHOLDER"
-  persistentVolume:
-    volumeAttributeShareName: "PLACEHOLDER"
-  nginx:
-    image:
-      repository: acrprodmgmt.azurecr.io/nginx
-    tag: stable
-  redis:
-    image:
-      repository: redis
-    master:
-      nodeSelector:
-        agentpool: userpool
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: managed-csi
-  elasticsearch:
-    image:
-      repository: elasticsearch
-      tag: 8.8.2-debian-11-r0
-    master:
-      nodeSelector:
-        agentpool: userpool
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: managed-csi
-    data:
-      nodeSelector:
-        agentpool: userpool
-      resources:
-        requests:
-          memory: 1.5Gi
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: managed-csi
-    coordinating:
-      nodeSelector:
-        agentpool: userpool
-  sysctlImage:
-    registry: acrprodmgmt.azurecr.io
+  # settings:
+    # allowedHosts: "ontw-mijn.dimpact.info.nl,openinwoner-nginx.podiumd.svc.cluster.local"
+    # digidMock: true
+    # database:
+      # name: openinwoner
+      # username: openinwoner
+      # password: "qUPo10ui9hXLF0520DFrDjLCJoWIJTDZ"
+    # secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+    # email:
+      # host: mail.enschede.nl
+      # defaultFrom: "noreply@info.nl"
+    # isHttps: true
+    # numProxies: 2
+    # sentry:
+      # dsn: "https://0e04a71fe90446828f2aa544b73f1f17@sentry.maykinmedia.nl/354"
+    # environment: dimpact-info-ontw
+    # extraEnvVars:
+      # - name: DIGID_METADATA
+        # value: "/app/media/metadata"
+  # image:
+    # repository: acrprodmgmt.azurecr.io/openinwoner
+  # nodeSelector:
+    # agentpool: userpool
+  # persistence:
+    # existingClaim: "placeholder"
+    # size: "PLACEHOLDER"
+  # persistentVolume:
+    # volumeAttributeShareName: "PLACEHOLDER"
+  # nginx:
+    # image:
+      # repository: acrprodmgmt.azurecr.io/nginx
+    # tag: stable
+  # redis:
+    # image:
+      # repository: redis
+    # master:
+      # nodeSelector:
+        # agentpool: userpool
+      # persistence:
+        # enabled: true
+        # size: 8Gi
+        # storageClass: managed-csi
+  # elasticsearch:
+    # image:
+      # repository: elasticsearch
+      # tag: 8.8.2-debian-11-r0
+    # master:
+      # nodeSelector:
+        # agentpool: userpool
+      # persistence:
+        # enabled: true
+        # size: 8Gi
+        # storageClass: managed-csi
+    # data:
+      # nodeSelector:
+        # agentpool: userpool
+      # resources:
+        # requests:
+          # memory: 1.5Gi
+      # persistence:
+        # enabled: true
+        # size: 8Gi
+        # storageClass: managed-csi
+    # coordinating:
+      # nodeSelector:
+        # agentpool: userpool
+  # sysctlImage:
+    # registry: acrprodmgmt.azurecr.io
 
-kisselastic:
-  enabled: false
-  kibanaDomain: contact-kb-http.podiumd.svc.cluster.local
-  nodeSelector:
-    agentpool: userpool
-  eck-operator:
-    managedNamespaces:
-      - podiumd
-    image:
-      repository: acrprodmgmt.azurecr.io/eck-operator
-      tag: "2.9.0"
-    nodeSelector:
-      agentpool: userpool
-    config:
-      containerRegistry: acrprodmgmt.azurecr.io
-      nodeSelector:
-        agentpool: userpool
-kiss:
-  configuration:
-    oidcUrl: https://ontw-contact.dimpact.info.nl
-    oidcSecret: "hrDTDY5vfCNRkvFxwwVsBgvfc830n5Q2"
-  brp:
-    baseUrl: "http://brpmock.podiumd.svc.cluster.local/haalcentraal/api"
-    apiKey: "NkyH9QuOgBfI2PWGRMk9vJdWlgLHrrRf"
-  elastic:
-    baseUrl: ""
-    username: elastic
-    password: "2D4Cq8JFhQYDo3242e7iI03o"
-    image:
-      repository: acrprodmgmt.azurecr.io/elasticsearch
-      tag: "8.9.0"
-    nodeSelector:
-      agentpool: userpool
-  enterpriseSearch:
-    baseUrl: ""
-    privateApikey: "private-5xhbb7wihmpu4wdb18m8akw2"
-    publicApikey: "search-z7x6mpzrf2b59cji8bfo5qjx"
-    engine: kiss-engine
-    image:
-      repository: acrprodmgmt.azurecr.io/enterprise-search
-      tag: "8.9.0"
-    nodeSelector:
-      agentpool: userpool
-  esuite:
-    baseUrl: "https://dtestmidoffice.dimpact.nl"
-    clientId: contact-kiss
-    secret: "CRn4jMRYPUCXf7v4I174sgllZwiIT5QP"
-    contactverzoektypen:
-      - Terugbelverzoek
+# kisselastic:
+  # enabled: false
+  # kibanaDomain: contact-kb-http.podiumd.svc.cluster.local
+  # nodeSelector:
+    # agentpool: userpool
+  # eck-operator:
+    # managedNamespaces:
+      # - podiumd
+    # image:
+      # repository: acrprodmgmt.azurecr.io/eck-operator
+      # tag: "2.9.0"
+    # nodeSelector:
+      # agentpool: userpool
+    # config:
+      # containerRegistry: acrprodmgmt.azurecr.io
+      # nodeSelector:
+        # agentpool: userpool
+# kiss:
+  # configuration:
+    # oidcUrl: https://ontw-contact.dimpact.info.nl
+    # oidcSecret: "hrDTDY5vfCNRkvFxwwVsBgvfc830n5Q2"
+  # brp:
+    # baseUrl: "http://brpmock.podiumd.svc.cluster.local/haalcentraal/api"
+    # apiKey: "NkyH9QuOgBfI2PWGRMk9vJdWlgLHrrRf"
+  # elastic:
+    # baseUrl: ""
+    # username: elastic
+    # password: "2D4Cq8JFhQYDo3242e7iI03o"
+    # image:
+      # repository: acrprodmgmt.azurecr.io/elasticsearch
+      # tag: "8.9.0"
+    # nodeSelector:
+      # agentpool: userpool
+  # enterpriseSearch:
+    # baseUrl: ""
+    # privateApikey: "private-5xhbb7wihmpu4wdb18m8akw2"
+    # publicApikey: "search-z7x6mpzrf2b59cji8bfo5qjx"
+    # engine: kiss-engine
+    # image:
+      # repository: acrprodmgmt.azurecr.io/enterprise-search
+      # tag: "8.9.0"
+    # nodeSelector:
+      # agentpool: userpool
+  # esuite:
+    # baseUrl: "https://dtestmidoffice.dimpact.nl"
+    # clientId: contact-kiss
+    # secret: "CRn4jMRYPUCXf7v4I174sgllZwiIT5QP"
+    # contactverzoektypen:
+      # - Terugbelverzoek
     # isDefault: true
-  database:
-    host: "psql-ontw-info.postgres.database.azure.com"
-    name: "contact"
-    user: "contact"
-    password: "qXR1QGsepciibx5GTuZ3lDCIYtlTeKI3"
-  email:
-    host: "mail.enschede.nl"
-    feedbackFrom: "noreply@info.nl"
-    feedbackTo: "noreply@info.nl"
-  kvk:
-    baseUrl: "https://api.kvk.nl/test/api"
-    apikey: "l7xx1f2691f2520d487b902f4e0b57a0b197"
-  objecten:
-    baseUrl: "http://objecten.podiumd.svc.cluster.local"
-    token: "0de4b0a6679080f83bb3e1e9730fa710ee1129f6"
-  objecttypen:
-    baseUrlIntern: "https://ontw-objecttypen.dimpact.info.nl"
-    baseUrlExtern: "https://ontw-objecttypen.dimpact.info.nl"
-    token: "ZUQP9n0DRzda2tis89M47adRJ6NiZWwQ"
-    medewerkerUUID: "90984726-2692-49d8-8f9d-742075cb761d"
-    afdelingUUID: "c8d301f9-80b8-4575-8b29-3e9431f92994"
-    groepUUID: "cbec27ac-157b-490b-b586-9e8a8f5bbb85"
-    interneTaakUUID: "72240cd6-29bb-4a66-b1c3-ab6589a39a22"
-    kennisartikelUUID: "e4d2e353-80ea-4962-8276-920d59a3e8de"
-    vacUUID: "6a0d8f9d-f7e2-4e57-a91b-01656968a62d"
-  vac:
-    useVacs: false
-    objectenBaseUrl: "http://objecten.podiumd.svc.cluster.local"
-    objectenToken: "0de4b0a6679080f83bb3e1e9730fa710ee1129f6"
-    objectTypeUrl: "https://ontw-objecttypen.dimpact.info.nl/api/v2/objecttypes/6a0d8f9d-f7e2-4e57-a91b-01656968a62d"
-    objectTypeVersion: "1"
-  oidc:
-    authority: "https://ontw-keycloak.dimpact.info.nl/realms/podiumd/"
-    clientId: kiss
-    secret: "hrDTDY5vfCNRkvFxwwVsBgvfc830n5Q2"
-  organisatieIds: "856683164"
-  nodeSelector:
-    agentpool: userpool
-  frontend:
-    service:
-      name: contact
-    image:
-      repository: acrprodmgmt.azurecr.io/contact-frontend
-  adapter:
-    baseUrl: "http://podiumd-adapter.podiumd.svc.cluster.local"
-    clientId: contact_intern
-    secret: "AzEsuEbPOyxQXYKHIR9JxtC40gPsVufU"
-    image:
-      repository: acrprodmgmt.azurecr.io/contact-adapter
-  sync:
-    initialSync: true
-    schedule:
-      kennisbank: "*/59 7-17 * * 1-5"
-      smoelenboek: "*/59 7-17 * * 1-5"
-      vac: "*/59 7-17 * * 1-5"
-    successfulJobsHistoryLimit: 1
-    failedJobsHistoryLimit: 1
-    image:
-      repository: "acrprodmgmt.azurecr.io/contact-sync"
-      tag: "main-20241210102626-74b03e4"
-  alpine:
-    image:
-      repository: "acrprodmgmt.azurecr.io/alpine"
+  # database:
+    # host: "psql-ontw-info.postgres.database.azure.com"
+    # name: "contact"
+    # user: "contact"
+    # password: "qXR1QGsepciibx5GTuZ3lDCIYtlTeKI3"
+  # email:
+    # host: "mail.enschede.nl"
+    # feedbackFrom: "noreply@info.nl"
+    # feedbackTo: "noreply@info.nl"
+  # kvk:
+    # baseUrl: "https://api.kvk.nl/test/api"
+    # apikey: "l7xx1f2691f2520d487b902f4e0b57a0b197"
+  # objecten:
+    # baseUrl: "http://objecten.podiumd.svc.cluster.local"
+    # token: "0de4b0a6679080f83bb3e1e9730fa710ee1129f6"
+  # objecttypen:
+    # baseUrlIntern: "https://ontw-objecttypen.dimpact.info.nl"
+    # baseUrlExtern: "https://ontw-objecttypen.dimpact.info.nl"
+    # token: "ZUQP9n0DRzda2tis89M47adRJ6NiZWwQ"
+    # medewerkerUUID: "90984726-2692-49d8-8f9d-742075cb761d"
+    # afdelingUUID: "c8d301f9-80b8-4575-8b29-3e9431f92994"
+    # groepUUID: "cbec27ac-157b-490b-b586-9e8a8f5bbb85"
+    # interneTaakUUID: "72240cd6-29bb-4a66-b1c3-ab6589a39a22"
+    # kennisartikelUUID: "e4d2e353-80ea-4962-8276-920d59a3e8de"
+    # vacUUID: "6a0d8f9d-f7e2-4e57-a91b-01656968a62d"
+  # vac:
+    # useVacs: false
+    # objectenBaseUrl: "http://objecten.podiumd.svc.cluster.local"
+    # objectenToken: "0de4b0a6679080f83bb3e1e9730fa710ee1129f6"
+    # objectTypeUrl: "https://ontw-objecttypen.dimpact.info.nl/api/v2/objecttypes/6a0d8f9d-f7e2-4e57-a91b-01656968a62d"
+    # objectTypeVersion: "1"
+  # oidc:
+    # authority: "https://ontw-keycloak.dimpact.info.nl/realms/podiumd/"
+    # clientId: kiss
+    # secret: "hrDTDY5vfCNRkvFxwwVsBgvfc830n5Q2"
+  # organisatieIds: "856683164"
+  # nodeSelector:
+    # agentpool: userpool
+  # frontend:
+    # service:
+      # name: contact
+    # image:
+      # repository: acrprodmgmt.azurecr.io/contact-frontend
+  # adapter:
+    # baseUrl: "http://podiumd-adapter.podiumd.svc.cluster.local"
+    # clientId: contact_intern
+    # secret: "AzEsuEbPOyxQXYKHIR9JxtC40gPsVufU"
+    # image:
+      # repository: acrprodmgmt.azurecr.io/contact-adapter
+  # sync:
+    # initialSync: true
+    # schedule:
+      # kennisbank: "*/59 7-17 * * 1-5"
+      # smoelenboek: "*/59 7-17 * * 1-5"
+      # vac: "*/59 7-17 * * 1-5"
+    # successfulJobsHistoryLimit: 1
+    # failedJobsHistoryLimit: 1
+    # image:
+      # repository: "acrprodmgmt.azurecr.io/contact-sync"
+      # tag: "main-20241210102626-74b03e4"
+  # alpine:
+    # image:
+      # repository: "acrprodmgmt.azurecr.io/alpine"
 
-zac:
-  enabled: false
-  initContainer:
-    image:
-      repository: acrprodmgmt.azurecr.io/curl
-      tag: "8.12.1"
-  image:
-    repository: acrprodmgmt.azurecr.io/zac
-  nodeSelector:
-    agentpool: userpool
-  auth:
-    server: https://ontw-keycloak.dimpact.info.nl
-    realm: podiumd
-    clientId: zac
-    secret: "2QcV8hhTBmek5G4ZdL7kYaywjO8Pzpqm"
-  bagApi:
-    url: http://api-proxy/lvbag/individuelebevragingen/v2/
-    apiKey: "dummy"
-  brpApi:
-    url: http://api-proxy/haalcentraal/api/brp/
-    apiKey: "dummy"
-  kvkApi:
-    url: http://api-proxy/
-    apiKey: "dummy"
-  catalogusDomein: ALG
-  contextUrl: https://ontw-zac.dimpact.info.nl
-  db:
-    host: psql-ontw-info.postgres.database.azure.com
-    name: zac
-    user: zac
-    password: "IbE8EV8GT5dwSqIigeI86Kb1RPfOzE00"
-  gemeente:
-    code: "007"
-    naam: "Info"
-    mail: "noreply@info.nl"
-  keycloak:
-    adminClient:
-      id: zac-admin-client
-      secret: "vI6nXQnt0QlLyigRueghKUPCGscgV003"
-  klantinteractiesApi:
-    url: "https://ontw-openklant.dimpact.info.nl"
-    token: openklanttoken
-  mail:
-    smtp:
-      server: "mail.enschede.nl"
-      port: "587"
-      username: "dummy"
-      password: "dummy"
-  maxFileSizeMB: 150
-  office_converter:
-    nodeSelector:
-      agentpool: userpool
-    image:
-      repository: acrprodmgmt.azurecr.io/office-converter
-      tag: "1.7.1"
-  nginx:
-    enabled: true
-    useXForwardedHost: true
-    allowedHosts: ontw-zac.dimpact.info.nl,zac.podiumd
-    nodeSelector:
-      agentpool: userpool
-    client_max_body_size: 150M
-    image:
-      repository: acrprodmgmt.azurecr.io/nginx
-      tag: "1.27.3"
-  notificationsSecretKey: "Rk1vbyXy6T1Vtr2u8Gsm1GceCDOQ3Zt4"
-  objectenApi:
-    url: "https://ontw-objecten.dimpact.info.nl"
-    token: "cd63e158f3aca276ef284e3033d020a22899c728"
-  objecttypenApi:
-    url: "https://ontw-objecttypen.dimpact.info.nl"
-    token: "31c25ba1d8c20d74d30017c7f8808d649a8fabbb"
-  openForms:
-    url: "https://ontw-formulier.dimpact.info.nl"
-  organizations:
-    bron:
-      rsin: "856683164"
-    verantwoordelijke:
-      rsin: "856683164"
-  smartDocuments:
-    enabled: false
-    url: ""
-    authentication: ""
-    fixedUserName: ""
-  opa:
-    nodeSelector:
-      agentpool: userpool
-    image:
-      repository: acrprodmgmt.azurecr.io/opa
-      tag: "1.4.2-static"
-  solr-operator:
-    enabled: true
-    nodeSelector:
-      agentpool: userpool
-    image:
-      repository: acrprodmgmt.azurecr.io/solr-operator
-      tag: "v0.8.1"
-    solr:
-      enabled: true
-      busyBoxImage:
-        repository: acrprodmgmt.azurecr.io/busybox
-        tag: "1.28.0-glibc"
-      nodeSelector:
-        agentpool: userpool
-      image:
-        repository: acrprodmgmt.azurecr.io/solr
-        tag: "9.6.1"
-      javaMem: -Xms512m -Xmx768m
-      jobs:
-        createZacCore: true
-        image:
-          repository: acrprodmgmt.azurecr.io/curl
-          tag: "8.12.1"
-        nodeSelector:
-          agentpool: userpool
-    watchNamespaces: "podiumd"
-    zookeeper-operator:
-      nodeSelector:
-        agentpool: userpool
-      hooks:
-        image:
-          repository: acrprodmgmt.azurecr.io/k8s-kubectl
-          tag: "v1.23.14"
-      image:
-        repository: acrprodmgmt.azurecr.io/zookeeper-operator
-        tag: "0.2.15"
-      watchNamespace: "podiumd"
-      zookeeper:
-        replicas: 1
-        nodeSelector:
-          agentpool: userpool
-        image:
-          repository: acrprodmgmt.azurecr.io/zookeeper
-          tag: "0.2.15"
-  zgwApis:
-    url: "https://ontw-openzaak.dimpact.info.nl"
-    urlExtern: "https://ontw-openzaak.dimpact.info.nl"
-    clientId: zac
-    secret: "ERYe7BOTMRaLQcVECNhJEpdouuVDd6RD"
-  signaleringen:
-    nodeSelector:
-      agentpool: userpool
-    image:
-      repository: acrprodmgmt.azurecr.io/curl
-      tag: "8.12.1"
-    sendZaakSignaleringenSchedule: "0 8 * * 1-5" # OTA waarde
-    deleteOldSignaleringenSchedule: "30 8 * * 1-5" # OTA waarde
+# zac:
+  # enabled: false
+  # initContainer:
+    # image:
+      # repository: acrprodmgmt.azurecr.io/curl
+      # tag: "8.12.1"
+  # image:
+    # repository: acrprodmgmt.azurecr.io/zac
+  # nodeSelector:
+    # agentpool: userpool
+  # auth:
+    # server: https://ontw-keycloak.dimpact.info.nl
+    # realm: podiumd
+    # clientId: zac
+    # secret: "2QcV8hhTBmek5G4ZdL7kYaywjO8Pzpqm"
+  # bagApi:
+    # url: http://api-proxy/lvbag/individuelebevragingen/v2/
+    # apiKey: "dummy"
+  # brpApi:
+    # url: http://api-proxy/haalcentraal/api/brp/
+    # apiKey: "dummy"
+  # kvkApi:
+    # url: http://api-proxy/
+    # apiKey: "dummy"
+  # catalogusDomein: ALG
+  # contextUrl: https://ontw-zac.dimpact.info.nl
+  # db:
+    # host: psql-ontw-info.postgres.database.azure.com
+    # name: zac
+    # user: zac
+    # password: "IbE8EV8GT5dwSqIigeI86Kb1RPfOzE00"
+  # gemeente:
+    # code: "007"
+    # naam: "Info"
+    # mail: "noreply@info.nl"
+  # keycloak:
+    # adminClient:
+      # id: zac-admin-client
+      # secret: "vI6nXQnt0QlLyigRueghKUPCGscgV003"
+  # klantinteractiesApi:
+    # url: "https://ontw-openklant.dimpact.info.nl"
+    # token: openklanttoken
+  # mail:
+    # smtp:
+      # server: "mail.enschede.nl"
+      # port: "587"
+      # username: "dummy"
+      # password: "dummy"
+  # maxFileSizeMB: 150
+  # office_converter:
+    # nodeSelector:
+      # agentpool: userpool
+    # image:
+      # repository: acrprodmgmt.azurecr.io/office-converter
+      # tag: "1.7.1"
+  # nginx:
+    # enabled: true
+    # useXForwardedHost: true
+    # allowedHosts: ontw-zac.dimpact.info.nl,zac.podiumd
+    # nodeSelector:
+      # agentpool: userpool
+    # client_max_body_size: 150M
+    # image:
+      # repository: acrprodmgmt.azurecr.io/nginx
+      # tag: "1.27.3"
+  # notificationsSecretKey: "Rk1vbyXy6T1Vtr2u8Gsm1GceCDOQ3Zt4"
+  # objectenApi:
+    # url: "https://ontw-objecten.dimpact.info.nl"
+    # token: "cd63e158f3aca276ef284e3033d020a22899c728"
+  # objecttypenApi:
+    # url: "https://ontw-objecttypen.dimpact.info.nl"
+    # token: "31c25ba1d8c20d74d30017c7f8808d649a8fabbb"
+  # openForms:
+    # url: "https://ontw-formulier.dimpact.info.nl"
+  # organizations:
+    # bron:
+      # rsin: "856683164"
+    # verantwoordelijke:
+      # rsin: "856683164"
+  # smartDocuments:
+    # enabled: false
+    # url: ""
+    # authentication: ""
+    # fixedUserName: ""
+  # opa:
+    # nodeSelector:
+      # agentpool: userpool
+    # image:
+      # repository: acrprodmgmt.azurecr.io/opa
+      # tag: "1.4.2-static"
+  # solr-operator:
+    # enabled: true
+    # nodeSelector:
+      # agentpool: userpool
+    # image:
+      # repository: acrprodmgmt.azurecr.io/solr-operator
+      # tag: "v0.8.1"
+    # solr:
+      # enabled: true
+      # busyBoxImage:
+        # repository: acrprodmgmt.azurecr.io/busybox
+        # tag: "1.28.0-glibc"
+      # nodeSelector:
+        # agentpool: userpool
+      # image:
+        # repository: acrprodmgmt.azurecr.io/solr
+        # tag: "9.6.1"
+      # javaMem: -Xms512m -Xmx768m
+      # jobs:
+        # createZacCore: true
+        # image:
+          # repository: acrprodmgmt.azurecr.io/curl
+          # tag: "8.12.1"
+        # nodeSelector:
+          # agentpool: userpool
+    # watchNamespaces: "podiumd"
+    # zookeeper-operator:
+      # nodeSelector:
+        # agentpool: userpool
+      # hooks:
+        # image:
+          # repository: acrprodmgmt.azurecr.io/k8s-kubectl
+          # tag: "v1.23.14"
+      # image:
+        # repository: acrprodmgmt.azurecr.io/zookeeper-operator
+        # tag: "0.2.15"
+      # watchNamespace: "podiumd"
+      # zookeeper:
+        # replicas: 1
+        # nodeSelector:
+          # agentpool: userpool
+        # image:
+          # repository: acrprodmgmt.azurecr.io/zookeeper
+          # tag: "0.2.15"
+  # zgwApis:
+    # url: "https://ontw-openzaak.dimpact.info.nl"
+    # urlExtern: "https://ontw-openzaak.dimpact.info.nl"
+    # clientId: zac
+    # secret: "ERYe7BOTMRaLQcVECNhJEpdouuVDd6RD"
+  # signaleringen:
+    # nodeSelector:
+      # agentpool: userpool
+    # image:
+      # repository: acrprodmgmt.azurecr.io/curl
+      # tag: "8.12.1"
+    # sendZaakSignaleringenSchedule: "0 8 * * 1-5" # OTA waarde
+    # deleteOldSignaleringenSchedule: "30 8 * * 1-5" # OTA waarde
 
-clamav:
-  image:
-    repository: acrprodmgmt.azurecr.io/clamav
-  nodeSelector:
-    agentpool: userpool
+# clamav:
+  # image:
+    # repository: acrprodmgmt.azurecr.io/clamav
+  # nodeSelector:
+    # agentpool: userpool
 
-apiproxy:
-  enabled: true
-  replicaCount: 1
-  image:
-    repository: acrprodmgmt.azurecr.io/nginx
-    tag: stable
-  nodeSelector:
-    agentpool: userpool
-  service:
-    port: "PLACEHOLDER"
-  resources:
-    limits:
-      cpu: "PLACEHOLDER"
-      memory: "PLACEHOLDER"
-    requests:
-      cpu: "PLACEHOLDER"
-      memory: "PLACEHOLDER"
-  livenessProbe:
-    initialDelaySeconds: "PLACEHOLDER"
-    periodSeconds: "PLACEHOLDER"
-    timeoutSeconds: "PLACEHOLDER"
-    failureThreshold: "PLACEHOLDER"
-    successThreshold: "PLACEHOLDER"
-  readinessProbe:
-    initialDelaySeconds: "PLACEHOLDER"
-    periodSeconds: "PLACEHOLDER"
-    timeoutSeconds: "PLACEHOLDER"
-    failureThreshold: "PLACEHOLDER"
-    successThreshold: "PLACEHOLDER"
-  locations:
-    commonsettings: &commonLocation
-      hostHeader: "api.kvk.nl"
-      apikey: "l7xx1f2691f2520d487b902f4e0b57a0b197" # TODO API KEY voor KEYVAULT - Dit is op dit moment de variant van KVK die je al voor iets gebruikt
-    bag:
-      hostHeader: "api.bag.kadaster.nl"
-      targetUrl: "https://api.bag.kadaster.nl/lvbag/individuelebevragingen/v2/"
-      apikey: "<dimpact bag key>" # TODO API KEY voor KEYVAULT
-    brp:
-      sslVerify: "off"
-      hostHeader: "brp-personen-mock"
-      targetUrl: "http://brp-personen-mock:5010/haalcentraal/api/brp/"
-    kvkSearch:
-      <<: *commonLocation
-      path: /api/v2/zoeken
-      targetUrl: "https://api.kvk.nl/test/api/v2/zoeken"
-    kvkBasic:
-      <<: *commonLocation
-      path: /api/v1/basisprofielen
-      targetUrl: "https://api.kvk.nl/test/api/v1/basisprofielen"
-    kvkBranch:
-      <<: *commonLocation
-      path: /api/v1/vestigingsprofielen
-      targetUrl: "https://api.kvk.nl/test/api/v1/vestigingsprofielen"
+# apiproxy:
+  # enabled: true
+  # replicaCount: 1
+  # image:
+    # repository: acrprodmgmt.azurecr.io/nginx
+    # tag: stable
+  # nodeSelector:
+    # agentpool: userpool
+  # service:
+    # port: "PLACEHOLDER"
+  # resources:
+    # limits:
+      # cpu: "PLACEHOLDER"
+      # memory: "PLACEHOLDER"
+    # requests:
+      # cpu: "PLACEHOLDER"
+      # memory: "PLACEHOLDER"
+  # livenessProbe:
+    # initialDelaySeconds: "PLACEHOLDER"
+    # periodSeconds: "PLACEHOLDER"
+    # timeoutSeconds: "PLACEHOLDER"
+    # failureThreshold: "PLACEHOLDER"
+    # successThreshold: "PLACEHOLDER"
+  # readinessProbe:
+    # initialDelaySeconds: "PLACEHOLDER"
+    # periodSeconds: "PLACEHOLDER"
+    # timeoutSeconds: "PLACEHOLDER"
+    # failureThreshold: "PLACEHOLDER"
+    # successThreshold: "PLACEHOLDER"
+  # locations:
+    # commonsettings: &commonLocation
+      # hostHeader: "api.kvk.nl"
+      # apikey: "l7xx1f2691f2520d487b902f4e0b57a0b197" # TODO API KEY voor KEYVAULT - Dit is op dit moment de variant van KVK die je al voor iets gebruikt
+    # bag:
+      # hostHeader: "api.bag.kadaster.nl"
+      # targetUrl: "https://api.bag.kadaster.nl/lvbag/individuelebevragingen/v2/"
+      # apikey: "<dimpact bag key>" # TODO API KEY voor KEYVAULT
+    # brp:
+      # sslVerify: "off"
+      # hostHeader: "brp-personen-mock"
+      # targetUrl: "http://brp-personen-mock:5010/haalcentraal/api/brp/"
+    # kvkSearch:
+      # <<: *commonLocation
+      # path: /api/v2/zoeken
+      # targetUrl: "https://api.kvk.nl/test/api/v2/zoeken"
+    # kvkBasic:
+      # <<: *commonLocation
+      # path: /api/v1/basisprofielen
+      # targetUrl: "https://api.kvk.nl/test/api/v1/basisprofielen"
+    # kvkBranch:
+      # <<: *commonLocation
+      # path: /api/v1/vestigingsprofielen
+      # targetUrl: "https://api.kvk.nl/test/api/v1/vestigingsprofielen"
 
-brppersonenmock:
-  enabled: true
-  image:
-    repository: acrprodmgmt.azurecr.io/personen-mock
-  nodeSelector:
-    agentpool: userpool
+# brppersonenmock:
+  # enabled: true
+  # image:
+    # repository: acrprodmgmt.azurecr.io/personen-mock
+  # nodeSelector:
+    # agentpool: userpool
