@@ -1,12 +1,31 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
+
+# Validate required tools
+check_requirements() {
+    local missing_tools=()
+    
+    if ! command -v helm >/dev/null 2>&1; then
+        missing_tools+=("helm")
+    fi
+    
+    if ! command -v git >/dev/null 2>&1; then
+        missing_tools+=("git")
+    fi
+    
+    if [[ ${#missing_tools[@]} -gt 0 ]]; then
+        echo -e "${RED}❌ Missing required tools: ${missing_tools[*]}${NC}"
+        echo -e "${YELLOW}💡 Please install the missing tools and try again${NC}"
+        exit 1
+    fi
+}
 
 # Auto-detect git repository information
 GIT_REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
@@ -16,7 +35,8 @@ if [[ "$GIT_REMOTE_URL" =~ github\.com[:/]([^/]+)/([^/.]+) ]]; then
   # Convert owner to lowercase for OCI registry URL
   DEFAULT_REGISTRY_URL="oci://ghcr.io/$(echo "${GIT_OWNER}" | tr '[:upper:]' '[:lower:]')"
 else
-    DEFAULT_REGISTRY_URL=""
+    # Default to sunningdale-it if no git repository detected
+    DEFAULT_REGISTRY_URL="oci://ghcr.io/sunningdale-it"
 fi
 
 # Default values
@@ -35,28 +55,31 @@ Usage: $0 [OPTIONS]
 Package and push Helm charts to a registry.
 
 OPTIONS:
-    --dev                   Enable development mode (pushes to development registry)
+    --dev                   Enable development mode (pushes to development registry with -snapshot suffix)
     --chart CHART_NAME      Chart name to package (default: podiumd)
-    --registry URL          Registry URL (required for --dev mode)
-    --username USERNAME     Registry username (required for --dev mode)
-    --password PASSWORD     Registry password (required for --dev mode)
+    --registry URL          Registry URL (default: oci://ghcr.io/sunningdale-it)
+    --username USERNAME     Registry username (required)
+    --password PASSWORD     Registry password (optional if GITHUB_TOKEN is set)
     --help                  Show this help message
 
 EXAMPLES:
-    # Development mode - push to custom registry
+    # Development mode - push to custom registry with -snapshot suffix
     $0 --dev --registry oci://my-registry.com/charts --username myuser --password mypass
     
-    # Development mode - uses auto-detected GitHub registry and defaults
-    $0 --dev
+    # Development mode - uses default registry (ghcr.io/sunningdale-it) with GITHUB_TOKEN
+    $0 --dev --username myuser
     
-    # Production mode - uses GitHub Actions workflow instead
-    $0
+    # Production mode - push to registry without -snapshot suffix
+    $0 --registry oci://my-registry.com/charts --username myuser --password mypass
+    
+    # Production mode - uses default registry (ghcr.io/sunningdale-it) with GITHUB_TOKEN
+    $0 --username myuser
 
 ENVIRONMENT VARIABLES:
-    HELM_REGISTRY_URL       Registry URL for development mode
-    HELM_REGISTRY_USERNAME  Registry username for development mode  
-    HELM_REGISTRY_PASSWORD  Registry password for development mode
-    GITHUB_TOKEN           GitHub token (used as default password for GitHub registries)
+    HELM_REGISTRY_URL       Registry URL (default: oci://ghcr.io/sunningdale-it)
+    HELM_REGISTRY_USERNAME  Registry username
+    HELM_REGISTRY_PASSWORD  Registry password
+    GITHUB_TOKEN           GitHub token (used as password for GitHub registries)
 
 EOF
 }
@@ -100,6 +123,42 @@ done
 # Check if chart exists
 if [[ ! -d "$CHART_PATH" ]]; then
     echo -e "${RED}❌ Chart directory not found: $CHART_PATH${NC}"
+    exit 1
+fi
+
+# Set registry parameters from environment variables or defaults if not provided via command line
+if [[ -z "$REGISTRY_URL" ]]; then
+    REGISTRY_URL=${HELM_REGISTRY_URL:-$DEFAULT_REGISTRY_URL}
+fi
+
+if [[ -z "$REGISTRY_USERNAME" ]]; then
+    REGISTRY_USERNAME=${HELM_REGISTRY_USERNAME:-}
+fi
+
+if [[ -z "$REGISTRY_PASSWORD" ]]; then
+    REGISTRY_PASSWORD=${HELM_REGISTRY_PASSWORD:-${GITHUB_TOKEN:-}}
+fi
+
+# Validate required parameters for both modes
+if [[ -z "$REGISTRY_URL" ]]; then
+    echo -e "${RED}❌ Registry URL is required${NC}"
+    echo -e "${YELLOW}💡 Use --registry or set HELM_REGISTRY_URL environment variable${NC}"
+    if [[ -n "$GIT_REMOTE_URL" ]]; then
+        echo -e "${YELLOW}💡 Auto-detected GitHub repository, but could not determine registry URL${NC}"
+    fi
+    exit 1
+fi
+
+if [[ -z "$REGISTRY_USERNAME" ]]; then
+    echo -e "${RED}❌ Registry username is required${NC}"  
+    echo -e "${YELLOW}💡 Use --username or set HELM_REGISTRY_USERNAME environment variable${NC}"
+    exit 1
+fi
+
+# Check for password or GITHUB_TOKEN
+if [[ -z "$REGISTRY_PASSWORD" && -z "${GITHUB_TOKEN:-}" ]]; then
+    echo -e "${RED}❌ Registry password is required${NC}"
+    echo -e "${YELLOW}💡 Use --password, set HELM_REGISTRY_PASSWORD, or ensure GITHUB_TOKEN is available${NC}"
     exit 1
 fi
 
@@ -154,8 +213,7 @@ update_dependencies() {
 # Function to lint the chart
 lint_chart() {
     echo -e "${YELLOW}🔍 Linting $CHART_PATH...${NC}"
-    helm lint "$CHART_PATH"
-    if [[ $? -eq 0 ]]; then
+    if helm lint "$CHART_PATH"; then
         echo -e "${GREEN}✅ Helm lint passed! Proceeding to package the chart...${NC}"
     else
         echo -e "${RED}❌ Helm lint failed!${NC}"
@@ -166,11 +224,20 @@ lint_chart() {
 # Function to package the chart
 package_chart() {
     echo -e "${YELLOW}📦 Packaging chart $CHART_NAME...${NC}"
-    helm package "$CHART_PATH"
-    
-    # Find the packaged chart file
     CHART_VERSION=$(helm show chart "$CHART_PATH" | grep '^version:' | awk '{print $2}')
-    PACKAGE_FILE="${CHART_NAME}-${CHART_VERSION}.tgz"
+    if [[ "$DEV_MODE" = true ]]; then
+        SNAPSHOT_VERSION="${CHART_VERSION}-snapshot"
+        # Create a temporary Chart.yaml with -snapshot version
+        TMP_CHART_YAML="$CHART_PATH/Chart.yaml.tmp"
+        cp "$CHART_PATH/Chart.yaml" "$TMP_CHART_YAML"
+        sed -i.bak "s/^version: .*/version: $SNAPSHOT_VERSION/" "$TMP_CHART_YAML"
+        helm package "$CHART_PATH" --destination . --version "$SNAPSHOT_VERSION" --app-version "$SNAPSHOT_VERSION"
+        rm -f "$TMP_CHART_YAML" "$TMP_CHART_YAML.bak"
+        PACKAGE_FILE="${CHART_NAME}-${SNAPSHOT_VERSION}.tgz"
+    else
+        PACKAGE_FILE="${CHART_NAME}-${CHART_VERSION}.tgz"
+        helm package "$CHART_PATH" --destination .
+    fi
     
     if [[ -f "$PACKAGE_FILE" ]]; then
         echo -e "${GREEN}✅ Successfully packaged chart and saved it to: $PACKAGE_FILE${NC}"
@@ -180,36 +247,9 @@ package_chart() {
     fi
 }
 
-# Function to push chart in development mode
-push_chart_dev() {
-    # Use environment variables if not provided via command line
-    REGISTRY_URL=${REGISTRY_URL:-$HELM_REGISTRY_URL}
-    REGISTRY_URL=${REGISTRY_URL:-$DEFAULT_REGISTRY_URL}
-    REGISTRY_USERNAME=${REGISTRY_USERNAME:-$HELM_REGISTRY_USERNAME}
-    REGISTRY_PASSWORD=${REGISTRY_PASSWORD:-$HELM_REGISTRY_PASSWORD}
-    REGISTRY_PASSWORD=${REGISTRY_PASSWORD:-$GITHUB_TOKEN}
-    
-    # Validate required parameters for dev mode
-    if [[ -z "$REGISTRY_URL" ]]; then
-        echo -e "${RED}❌ Registry URL is required for development mode${NC}"
-        echo -e "${YELLOW}💡 Use --registry or set HELM_REGISTRY_URL environment variable${NC}"
-        if [[ -n "$GIT_REMOTE_URL" ]]; then
-            echo -e "${YELLOW}💡 Auto-detected GitHub repository, but could not determine registry URL${NC}"
-        fi
-        exit 1
-    fi
-    
-    if [[ -z "$REGISTRY_USERNAME" ]]; then
-        echo -e "${RED}❌ Registry username is required for development mode${NC}"  
-        echo -e "${YELLOW}💡 Use --username or set HELM_REGISTRY_USERNAME environment variable${NC}"
-        exit 1
-    fi
-    
-    if [[ -z "$REGISTRY_PASSWORD" ]]; then
-        echo -e "${RED}❌ Registry password is required for development mode${NC}"
-        echo -e "${YELLOW}💡 Use --password, set HELM_REGISTRY_PASSWORD, or ensure GITHUB_TOKEN is available${NC}"
-        exit 1
-    fi
+# Function to push chart to registry
+push_chart() {
+    # Registry parameters are already set in main execution
     
     echo -e "${YELLOW}🔐 Logging into registry...${NC}"
     
@@ -223,18 +263,38 @@ push_chart_dev() {
     fi
     
     # Push the chart
-    # set -x
-    echo -e "${YELLOW}🚀 Pushing chart to development registry...${NC}"
+    echo -e "${YELLOW}🚀 Pushing chart to registry...${NC}"
     CHART_VERSION=$(helm show chart "$CHART_PATH" | grep '^version:' | awk '{print $2}')
-    PACKAGE_FILE="${CHART_NAME}-${CHART_VERSION}.tgz"
     
-    # Always use the canonical GitHub OCI path if not explicitly overridden
-    if [[ "$LOGIN_HOST" == "ghcr.io" ]]; then
-        LOWER_OWNER=$(echo "$GIT_OWNER" | tr '[:upper:]' '[:lower:]')
-        LOWER_REPO=$(echo "$GIT_REPO" | tr '[:upper:]' '[:lower:]')
-        FULL_REGISTRY_PATH="oci://ghcr.io/$LOWER_OWNER/$LOWER_REPO/$CHART_NAME"
+    # Determine package file name based on mode
+    if [[ "$DEV_MODE" = true ]]; then
+        if [[ "$CHART_VERSION" == *-snapshot ]]; then
+            PACKAGE_FILE="${CHART_NAME}-${CHART_VERSION}.tgz"
+        else
+            PACKAGE_FILE="${CHART_NAME}-${CHART_VERSION}-snapshot.tgz"
+        fi
     else
-        # Remove trailing slash if present
+        # Production mode - use original version without snapshot
+        PACKAGE_FILE="${CHART_NAME}-${CHART_VERSION}.tgz"
+    fi
+    
+    # Verify package file exists before pushing
+    if [[ ! -f "$PACKAGE_FILE" ]]; then
+        echo -e "${RED}❌ Package file not found: $PACKAGE_FILE${NC}"
+        echo -e "${YELLOW}💡 Make sure the chart was packaged successfully${NC}"
+        exit 1
+    fi
+    
+    # Build the registry path - for GHCR, don't include chart name as Helm adds it automatically
+    if [[ "$LOGIN_HOST" == "ghcr.io" ]]; then
+        # Extract organization from registry URL or use default
+        ORG=$(echo "$REGISTRY_URL" | sed -E 's|^oci://ghcr.io/||; s|/.*$||')
+        if [[ -z "$ORG" ]]; then
+            ORG="sunningdale-it"
+        fi
+        FULL_REGISTRY_PATH="oci://ghcr.io/$ORG"
+    else
+        # For non-GHCR registries, use the provided URL
         BASE_PATH="${REGISTRY_URL%/}"
         # Prepend oci:// if missing
         if [[ "$BASE_PATH" != oci://* ]]; then
@@ -249,27 +309,29 @@ push_chart_dev() {
     fi
 
     if helm push "$PACKAGE_FILE" "$FULL_REGISTRY_PATH"; then
-        echo -e "${GREEN}✅ Chart pushed successfully to $FULL_REGISTRY_PATH${NC}"
+        # Print the registry path and tag in the correct format
+        if [[ "$LOGIN_HOST" == "ghcr.io" ]]; then
+            ORG=$(echo "$REGISTRY_URL" | sed -E 's|^oci://ghcr.io/||; s|/.*$||')
+            if [[ -z "$ORG" ]]; then
+                ORG="sunningdale-it"
+            fi
+            echo -e "${GREEN}✅ Chart pushed successfully to: ghcr.io/$ORG/$CHART_NAME:$CHART_VERSION${NC}"
+        else
+            echo -e "${GREEN}✅ Chart pushed successfully to: $FULL_REGISTRY_PATH:${CHART_VERSION}${NC}"
+        fi
     else
         echo -e "${RED}❌ Failed to push chart to registry${NC}"
         exit 1
     fi
 }
 
-# Function to handle production mode
-handle_production_mode() {
-    echo -e "${YELLOW}🏭 Production mode detected${NC}"
-    echo -e "${YELLOW}💡 For production releases, use GitHub Actions workflow instead:${NC}"
-    echo "   - Push changes to main branch for automatic release"
-    echo "   - Use 'Release Charts met changelogs' workflow for manual release with specific version"
-    echo ""
-    echo -e "${GREEN}✅ Chart packaged successfully for local testing${NC}"
-    echo -e "${YELLOW}📦 Package location: ${CHART_NAME}-*.tgz${NC}"
-}
-
 # Main execution
 main() {
     echo -e "${GREEN}🚀 Starting Helm chart package and push process${NC}"
+    
+    # Check requirements first
+    check_requirements
+    
     echo -e "${YELLOW}📋 Chart: $CHART_NAME${NC}"
     echo -e "${YELLOW}📁 Path: $CHART_PATH${NC}"
     echo -e "${YELLOW}🔧 Mode: $([ "$DEV_MODE" = true ] && echo "Development" || echo "Production")${NC}"
@@ -291,15 +353,44 @@ main() {
     # Package the chart
     package_chart
     
-    # Handle push based on mode
-    if [[ "$DEV_MODE" = true ]]; then
-        push_chart_dev
-    else
-        handle_production_mode
-    fi
+    # Push the chart to registry
+    push_chart
     
     echo ""
     echo -e "${GREEN}🎉 Process completed successfully!${NC}"
+
+    # Output instructions to download the chart from the target repository
+    CHART_VERSION=$(helm show chart "$CHART_PATH" | grep '^version:' | awk '{print $2}')
+    if [[ -n "$REGISTRY_URL" ]]; then
+        LOGIN_HOST=$(echo "$REGISTRY_URL" | sed -E 's|^oci://||; s|/.*$||')
+        if [[ "$LOGIN_HOST" == "ghcr.io" ]]; then
+            ORG=$(echo "$REGISTRY_URL" | sed -E 's|^oci://ghcr.io/||; s|/.*$||')
+            if [[ -z "$ORG" ]]; then
+                ORG="sunningdale-it"
+            fi
+            REPO_PATH="oci://ghcr.io/$ORG/$CHART_NAME"
+        else
+            BASE_PATH="${REGISTRY_URL%/}"
+            if [[ "$BASE_PATH" != oci://* ]]; then
+                BASE_PATH="oci://$BASE_PATH"
+            fi
+            if [[ "$BASE_PATH" != */$CHART_NAME ]]; then
+                REPO_PATH="$BASE_PATH/$CHART_NAME"
+            else
+                REPO_PATH="$BASE_PATH"
+            fi
+        fi
+    else
+        REPO_PATH="$DEFAULT_REGISTRY_URL/$CHART_NAME"
+    fi
+    
+    if [[ "$DEV_MODE" = true ]]; then
+        echo -e "${YELLOW}📥 To download the dev chart, run:${NC}"
+        echo -e "  helm pull $REPO_PATH --version $CHART_VERSION-snapshot"
+    else
+        echo -e "${YELLOW}📥 To download the production chart, run:${NC}"
+        echo -e "  helm pull $REPO_PATH --version $CHART_VERSION"
+    fi
 }
 
 # Run main function

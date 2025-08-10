@@ -1,0 +1,102 @@
+enabled: true
+auth:
+  adminUser: admin
+  adminPassword: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+cache:
+  enabled: true
+  stackName: kubernetes
+config:
+  adminFrontendUrl: https://ontw-keycloak-admin.dimpact.info.nl
+  adminIdentityProviders:
+    identityProviders:
+      - alias: "oidc-admin-info"
+        displayName: "PodiumD admin INFO"
+        providerId: "oidc"
+        enabled: true
+        updateProfileFirstLoginMode: "on"
+        config:
+          tokenUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+          jwksUrl: "https://login.microsoftonline.com/organizations/discovery/v2.0/keys"
+          issuer: "https://login.microsoftonline.com/5ac40c21-50a2-414f-93d1-495d1324322b/v2.0"
+          clientSecret: "SECRETPLACEHOLDER"
+          clientId: "2e74f511-6741-4e70-93c7-465cdd6b87a9"
+          syncMode: "FORCE"
+          userInfoUrl: "https://graph.microsoft.com/oidc/userinfo"
+          metadataDescriptorUrl: "https://login.microsoftonline.com/organizations/v2.0/.well-known/openid-configuration"
+          authorizationUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize"
+          logoutUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/logout"
+  adminIdentityProviderMappers:
+    identityProviderMappers:
+      - name: "info-to-admin-group-mapper"
+        identityProviderAlias: "oidc-admin-info"
+        identityProviderMapper: "oidc-hardcoded-role-idp-mapper"
+        config:
+          syncMode: "FORCE"
+          role: "admin"
+  realmIdentityProviders:
+    identityProviders:
+      - alias: "oidc-info"
+        displayName: "PodiumD users INFO"
+        providerId: "oidc"
+        enabled: true
+        updateProfileFirstLoginMode: "on"
+        config:
+          tokenUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+          jwksUrl: "https://login.microsoftonline.com/organizations/discovery/v2.0/keys"
+          issuer: "https://login.microsoftonline.com/5ac40c21-50a2-414f-93d1-495d1324322b/v2.0"
+          clientSecret: "SECRETPLACEHOLDER"
+          clientId: "2e74f511-6741-4e70-93c7-465cdd6b87a9"
+          syncMode: "FORCE"
+          userInfoUrl: "https://graph.microsoft.com/oidc/userinfo"
+          metadataDescriptorUrl: "https://login.microsoftonline.com/organizations/v2.0/.well-known/openid-configuration"
+          authorizationUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize"
+          logoutUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/logout"
+  realmIdentityProviderMappers:
+    identityProviderMappers:
+      - name: "info-to-admin-group-mapper"
+        identityProviderAlias: "oidc-info"
+        identityProviderMapper: "oidc-hardcoded-group-idp-mapper"
+        config:
+          syncMode: "FORCE"
+          group: "/administrators"
+  adminOtpEnabled: false
+  realmDisplayName: "PodiumD - Info - Ontwikkelomgeving"
+  realmFrontendUrl: https://ontw-keycloak.dimpact.info.nl
+  smtp:
+    server: mail.enschede.nl
+    port: "587"
+    from: "noreply@info.nl"
+    fromDisplayName: "Noreply INFO"
+    starttls: "true"
+    ssl: "false"
+    # clients:
+    #   monitoring:
+    #     name: Monitoring (Grafana)
+    #     enabled: true
+    #     secret: "monitoring_secret"
+    #     oidcUrl: "https://monitoring.example.nl"
+customCaExistingSecret: ispn-secret
+extraEnvVars: |
+  - name: KC_TRUSTSTORE_PATHS
+    value: "/opt/bitnami/keycloak/custom-ca"
+extraEnvVarsCM: keycloak-extra-env-vars
+extraStartupArgs: "--cache-remote-host=ispn --cache-remote-port=11222 --cache-remote-username=keycloak --cache-remote-password=yGzED95riA8hx5O2FID56aYI97UMSdbA --log-level=INFO --spi-connections-infinispan-quarkus-site-name=ontw-info"
+image:
+  repository: keycloak
+nodeSelector:
+  agentpool: userpool
+replicaCount: 2
+networkPolicy:
+  enabled: false
+podSecurity:
+  enabled: false
+keycloakConfigCli:
+  image:
+    repository: keycloak-config-cli
+  nodeSelector:
+    agentpool: userpool
+externalDatabase:
+  host: psql-ontw-info.postgres.database.azure.com
+  database: keycloak
+  user: keycloak
+  password: "NyUJuYrzPUpnpRnsWxE9uAVevnLogKZ5"

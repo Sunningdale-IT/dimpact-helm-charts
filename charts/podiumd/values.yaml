@@ -136,7 +136,7 @@ keycloak:
     password: "NyUJuYrzPUpnpRnsWxE9uAVevnLogKZ5"
 
 infinispan:
-  enabled: true
+  enabled: false
   images:
     server: acrprodmgmt.azurecr.io/infinispan-server:15.1
     initContainer: acrprodmgmt.azurecr.io/busybox:1.28.0-glibc
@@ -161,6 +161,7 @@ infinispan:
       transportSecretName: "ispn-transport-secret"
 
 openzaak:
+  enabled: false
   create_required_catalogi_job:
     client_id: integratieteam
     secret: "8IDlsFxbtqauJKwS4PI"
@@ -327,6 +328,7 @@ openzaak:
         storageClass: managed-csi
 
 opennotificaties:
+  enabled: false
   configuration:
     enabled: true
     http_request_job:
@@ -502,6 +504,7 @@ opennotificaties:
         storageClass: managed-csi
 
 objecten:
+  enabled: false
   configuration:
     enabled: true
     demo:
@@ -709,6 +712,7 @@ objecten:
         storageClass: managed-csi
 
 objecttypen:
+  enabled: false
   serviceAccount:
     create: false
   create_required_objecttypen_job:
@@ -925,6 +929,7 @@ openarchiefbeheer:
         storageClass: managed-csi
 
 openklant:
+  enabled: false
   configuration:
     enabled: false
     oidcUrl: "https://ontw-openklant.dimpact.info.nl"
@@ -1040,6 +1045,7 @@ openklant:
         storageClass: managed-csi
 
 openformulieren:
+  enabled: false
   configuration:
     oidcUrl: "https://ontw-formulier.dimpact.info.nl"
     oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
@@ -1200,6 +1206,7 @@ openformulieren:
         storageClass: managed-csi
 
 openinwoner:
+  enabled: false
   configuration:
     oidcUrl: "https://ontw-mijn.dimpact.info.nl"
     oidcSecret: "jbIihWfLaSDIpAyBocivJixHgSHU01gd"
@@ -1382,6 +1389,7 @@ openinwoner:
     registry: acrprodmgmt.azurecr.io
 
 kisselastic:
+  enabled: false
   kibanaDomain: contact-kb-http.podiumd.svc.cluster.local
   nodeSelector:
     agentpool: userpool
@@ -1495,7 +1503,7 @@ kiss:
       repository: "acrprodmgmt.azurecr.io/alpine"
 
 zac:
-  enabled: true
+  enabled: false
   initContainer:
     image:
       repository: acrprodmgmt.azurecr.io/curl

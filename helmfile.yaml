@@ -42,47 +42,49 @@ releases:
   # Infra - Core infrastructure and platform services
   #
   - name: keycloak
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: bitnami/keycloak
     version: 24.8.0
     values:
-      - helmfile/values/keycloak.yaml.gotmpl
+      - helmfile/values/keycloak.yaml
+    installed: false
     wait: true
     timeout: 600
 
   - name: clamav
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: wiremind/clamav
     version: 3.2.0
     values:
-      - helmfile/values/clamav.yaml.gotmpl
-    needs:
-      - keycloak
+      - helmfile/values/clamav.yaml
+    condition: clamav.enabled
     wait: true
     timeout: 300
 
   - name: infinispan
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: openshift/infinispan
     version: 0.5.0
     values:
-      - helmfile/values/infinispan.yaml.gotmpl
-    installed: {{ .Values.infinispan.enabled | default true }}
+      - helmfile/values/infinispan.yaml
+    condition: infinispan.enabled
+    installed: false
     needs:
       - keycloak
     wait: true
     timeout: 300
 
   #
-  # PodiumD app - Core application components
+  # PodiumD app - Core application components (TEMPORARILY DISABLED)
   #
   - name: openzaak
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: maykinmedia/openzaak
     version: 1.9.0
     values:
-      - helmfile/values/openzaak.yaml.gotmpl
-    installed: {{ .Values.openzaak.enabled | default true }}
+      - helmfile/values/openzaak.yaml
+    condition: openzaak.enabled
+    installed: false
     needs:
       - keycloak
       - clamav
@@ -90,24 +92,26 @@ releases:
     timeout: 600
 
   - name: opennotificaties
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: maykinmedia/opennotificaties
     version: 1.9.2
     values:
-      - helmfile/values/opennotificaties.yaml.gotmpl
-    installed: {{ .Values.opennotificaties.enabled | default true }}
+      - helmfile/values/opennotificaties.yaml
+    condition: opennotificaties.enabled
+    installed: false
     needs:
       - keycloak
     wait: true
     timeout: 300
 
   - name: zac
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: zac/zaakafhandelcomponent
     version: 1.0.98
     values:
-      - helmfile/values/zac.yaml.gotmpl
-    installed: {{ .Values.zac.enabled | default true }}
+      - helmfile/values/zac.yaml
+    condition: zac.enabled
+    installed: false
     needs:
       - openzaak
       - opennotificaties
@@ -116,60 +120,65 @@ releases:
     timeout: 600
 
   - name: objecten
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: maykinmedia/objecten
     version: 2.8.1
     values:
-      - helmfile/values/objecten.yaml.gotmpl
-    installed: {{ .Values.objecten.enabled | default true }}
+      - helmfile/values/objecten.yaml
+    condition: objecten.enabled
+    installed: false
     needs:
       - keycloak
     wait: true
     timeout: 300
 
   - name: objecttypen
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: maykinmedia/objecttypen
     version: 1.3.3
     values:
-      - helmfile/values/objecttypen.yaml.gotmpl
-    installed: {{ .Values.objecttypen.enabled | default true }}
+      - helmfile/values/objecttypen.yaml
+    condition: objecttypen.enabled
+    installed: false
     needs:
       - keycloak
     wait: true
     timeout: 300
 
   - name: openarchiefbeheer
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: maykinmedia/openarchiefbeheer
     version: 1.3.10
     values:
-      - helmfile/values/openarchiefbeheer.yaml.gotmpl
-    installed: {{ .Values.openarchiefbeheer.enabled | default true }}
+      - helmfile/values/openarchiefbeheer.yaml
+    condition: openarchiefbeheer.enabled
+    installed: false
     needs:
       - keycloak
     wait: true
     timeout: 300
 
   - name: openklant
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: maykinmedia/openklant
     version: 1.7.0
     values:
-      - helmfile/values/openklant.yaml.gotmpl
-    installed: {{ .Values.openklant.enabled | default true }}
+      - helmfile/values/openklant.yaml
+    condition: openklant.enabled
+    installed: false
     needs:
       - keycloak
     wait: true
     timeout: 300
 
   - name: openformulieren
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: maykinmedia/openforms
     version: 1.8.5
     values:
-      - helmfile/values/openformulieren.yaml.gotmpl
-    installed: {{ .Values.openformulieren.enabled | default true }}
+      - helmfile/values/openformulieren.yaml
+    condition: openformulieren.enabled
+    installed: false
     needs:
       - keycloak
       - objecten
@@ -178,12 +187,13 @@ releases:
     timeout: 600
 
   - name: openinwoner
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: maykinmedia/openinwoner
     version: 1.7.5
     values:
-      - helmfile/values/openinwoner.yaml.gotmpl
-    installed: {{ .Values.openinwoner.enabled | default true }}
+      - helmfile/values/openinwoner.yaml
+    condition: openinwoner.enabled
+    installed: false
     needs:
       - keycloak
       - openzaak
@@ -192,25 +202,27 @@ releases:
     timeout: 600
 
   #
-  # Non-prod - Testing tools, mocking and development services
+  # Non-prod - Testing tools, mocking and development services (TEMPORARILY DISABLED)
   #
   - name: kisselastic
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: kiss-elastic/kiss-elastic
     version: 1.0.0
     values:
-      - helmfile/values/kisselastic.yaml.gotmpl
-    installed: {{ .Values.kisselastic.enabled | default true }}
+      - helmfile/values/kisselastic.yaml
+    condition: kisselastic.enabled
+    installed: false
     wait: true
     timeout: 300
 
   - name: brppersonenmock
-    namespace: {{ .Values.namespace | default "podiumd" }}
+    namespace: podiumd
     chart: dimpact/brp-personen-mock
     version: 1.2.6
     values:
-      - helmfile/values/brppersonenmock.yaml.gotmpl
-    installed: {{ .Values.brppersonenmock.enabled | default true }}
+      - helmfile/values/brppersonenmock.yaml
+    condition: brppersonenmock.enabled
+    installed: false
     wait: true
     timeout: 300
 
@@ -224,7 +236,7 @@ hooks:
       - |
         echo "🚀 Starting PodiumD deployment..."
         echo "This deployment replaces the monolithic podiumd chart with individual component releases"
-        kubectl create namespace {{ .Values.namespace | default "podiumd" }} --dry-run=client -o yaml | kubectl apply -f -
+        kubectl create namespace podiumd --dry-run=client -o yaml | kubectl apply -f -
 
   - events: ["postSync"]
     showlogs: true
@@ -234,4 +246,4 @@ hooks:
       - |
         echo "✅ PodiumD deployment completed successfully!"
         echo "All components have been deployed as separate Helm releases to avoid Secret size limits"
-        kubectl get pods -n {{ .Values.namespace | default "podiumd" }}
+        kubectl get pods -n podiumd

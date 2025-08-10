@@ -8,48 +8,48 @@
 # Default namespace for all releases
 namespace: podiumd
 
-# Component enablement flags (TEMPORARILY DISABLED - ONLY CLAMAV ENABLED)
+# Component enablement flags (matching original podiumd chart)
 keycloak:
-  enabled: false
+  enabled: true
 
 clamav:
   enabled: true
 
 infinispan:
-  enabled: false
+  enabled: true
 
 openzaak:
-  enabled: false
+  enabled: true
 
 opennotificaties:
-  enabled: false
+  enabled: true
 
 objecten:
-  enabled: false
+  enabled: true
 
 objecttypen:
-  enabled: false
+  enabled: true
 
 openarchiefbeheer:
-  enabled: false
+  enabled: true
 
 openklant:
-  enabled: false
+  enabled: true
 
 openformulieren:
-  enabled: false
+  enabled: true
 
 openinwoner:
-  enabled: false
+  enabled: true
 
 kisselastic:
-  enabled: false
+  enabled: true
 
 zac:
-  enabled: false
+  enabled: true
 
 brppersonenmock:
-  enabled: false
+  enabled: true
 
 # Global configuration (shared across all components)
 global:
@@ -79,6 +79,8 @@ global:
   security:
     allowInsecureImages: false
   imageRegistry: ""
+
+# Additional configuration can be added here
 
 # Ingress configuration
 ingress:

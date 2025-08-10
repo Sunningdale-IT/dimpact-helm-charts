@@ -1,0 +1,118 @@
+enabled: false
+configuration:
+  enabled: false
+  oidcUrl: "https://ontw-abc.dimpact.info.nl"
+  oidcSecret: "abc"
+  job:
+    enabled: false
+    #     data: ""
+    #     # data: |-
+    #     #   zgw_consumers_config_enable: true
+    #     #   zgw_consumers:
+    #     #     services:
+    #     #     - identifier: zaken-dimpact-acc # TODO identifier logica/naam
+    #     #       label: Open Zaak - Zaken API
+    #     #       api_root: https://ontw-openzaak.dimpact.info.nl/zaken/api/v1/
+    #     #       api_type: zrc
+    #     #       auth_type: zgw
+    #     #       client_id: openarchiefbeheer
+    #     #       secret: ${oab_openzaak_secret} # TODO Keyvault item
+    #     #     - identifier: documenten-dimpact-acc # TODO identifier logica/naam
+    #     #       label: Open Zaak - Documenten API
+    #     #       api_root: https://ontw-openzaak.dimpact.info.nl/documenten/api/v1/
+    #     #       api_type: drc
+    #     #       auth_type: zgw
+    #     #       client_id: openarchiefbeheer
+    #     #       secret: ${oab_openzaak_secret} # TODO Keyvault item
+    #     #     - identifier: catalogus-dimpact-acc # TODO identifier logica/naam
+    #     #       label: Open Zaak - Catalogi API
+    #     #       api_root: https://example.openzaak.nl/catalogi/api/v1/
+    #     #       api_type: ztc
+    #     #       auth_type: zgw
+    #     #       client_id: openarchiefbeheer
+    #     #       secret: ${oab_openzaak_secret} # TODO Keyvault item
+    #     #     - identifier: besluiten-dimpact-acc # TODO identifier logica/naam
+    #     #       label: Open Zaak - Besluiten API
+    #     #       api_root: https://example.openzaak.nl/besluiten/api/v1/
+    #     #       api_type: brc
+    #     #       auth_type: zgw
+    #     #       client_id: openarchiefbeheer
+    #     #       secret: ${oab_openzaak_secret} # TODO Keyvault item
+    #     #     - identifier: selectielijst # TODO identifier logica/naam
+    #     #       label: Open Zaak (public) - Selectielijst API
+    #     #       api_root: https://selectielijst.openzaak.nl/api/v1/ # TODO onbekende URL opbouw
+    #     #       api_type: orc
+    #     #       auth_type: no_auth
+    #     #   api_configuration_enabled: true
+    #     #   api_configuration:
+    #     #     selectielijst_service_identifier: selectielijst
+    #     #   oidc_db_config_enable: true
+    #     #   oidc_db_config_admin_auth:
+    #     #     items:
+    #     #     - identifier: admin-oidc
+    #     #       enabled: true
+    #     #       oidc_rp_client_id: example-client-id
+    #     #       oidc_rp_client_secret: ${keycloak_client_secret}
+    #     #       oidc_rp_sign_algo: "RS256"
+    #     #       oidc_token_use_basic_auth: false
+    #     #       username_claim:
+    #     #         - preferred_username
+    #     #       groups_claim:
+    #     #         - resource_access
+    #     #         - example-client-id
+    #     #         - roles
+    #     #       superuser_group_names:
+    #     #         - Superuser
+    #     #       userinfo_claims_source: userinfo_endpoint
+    #     #       oidc_rp_idp_sign_key: ""
+    #     #       endpoint_config:
+    #     #         oidc_op_discovery_endpoint: https://example.keycloak.nl/realms/podiumd-poc/
+# tags:
+#   redis: true
+image:
+  # tag: "1.0.0"
+  repository: acrprodmgmt.azurecr.io/openarchiefbeheer
+nodeSelector:
+  agentpool: userpool
+# persistence:
+# enabled: true
+# size: 10Gi
+# existingClaim: openarchiefbeheer
+# storageClassName: ""
+settings:
+  allowedHosts: "ontw-abc.dimpact.info.nl,openarchiefbeheer-nginx.podiumd.svc.cluster.local"
+  database:
+    host: "psql-ontw-info.postgres.database.azure.com" # TODO Wordt niet gevuld vanuit default
+    # port: 5432
+    name: openarchiefbeheer
+    username: openarchiefbeheer
+    password: "18YQ6i6uTYU5w0SeyMpkonMpsvtFz3Zi"
+  cors:
+    allowAllOrigins: false
+    allowedOrigins:
+      - "https://ontw-abc.dimpact.info.nl"
+  isHttps: true
+  twoFactorAuthentication:
+    forceOtpAdmin: false
+    patchAdmin: false
+  sentry:
+    dsn: "https://4d81fe2f253f483b9ed6af28016d17e1@sentry.maykinmedia.nl/426"
+  environment: "dimpact-info-ontw"
+  # frontend:
+  #   apiUrl: ""
+  #   apiPath: "/api/v1"
+  frontendUrl: "https://ontw-abc.dimpact.info.nl"
+nginx:
+  image:
+    repository: acrprodmgmt.azurecr.io/nginx
+    tag: stable
+redis:
+  image:
+    repository: redis
+  master:
+    nodeSelector:
+      agentpool: userpool
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: managed-csi

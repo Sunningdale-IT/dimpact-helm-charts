@@ -1,0 +1,58 @@
+create_required_catalogi_job:
+  client_id: integratieteam
+  secret: "8IDlsFxbtqauJKwS4PI"
+  enabled: true
+  e2eTestZaaktype:
+    create: "PLACEHOLDER"
+configuration:
+  enabled: true
+  oidcUrl: "https://ontw-openzaak.dimpact.info.nl"
+  oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+  notificatiesAuthorization:
+    enabled: false
+  notificaties:
+    enabled: false
+  initContainer:
+    enabled: false
+  job:
+    enabled: true
+  data: "oidc_db_config_enable: true\noidc_db_config_admin_auth:\n  items:\n    - identifier: admin-oidc\n      enabled: true\n      claim_mapping:\n        email:\n          - email\n        first_name:\n          - given_name\n        last_name:\n        - family_name\n      username_claim:\n        - preferred_username\n      groups_claim:\n        - groups\n      superuser_group_names:\n        - \"administrators\"\n      oidc_rp_scopes_list:\n        - openid\n        - email\n        - profile\n      endpoint_config: \n        oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/\n      userinfo_claims_source: id_token\n      oidc_rp_client_id: openzaak\n      oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7\n      oidc_rp_sign_algo: RS256\n      make_users_staff: true\n      sync_groups: true\nzgw_consumers_config_enable: true\nzgw_consumers:\n  services:\n  - identifier: notificaties-api\n    label: Open Notificaties\n    api_root: https://ontw-notificaties.dimpact.info.nl/api/v1/\n    api_type: nrc\n    auth_type: zgw\n    client_id: zaak\n    secret: wRaVDs7NzKbRcz\n  - identifier: objecten-api\n    label: Objecten API\n    api_root: https://ontw-objecten.dimpact.info.nl/api/v2/\n    api_type: orc\n    auth_type: api_key\n    header_key: Authorization\n    header_value: Token 88d54b7d8500175894ca59d5e0d3b06fe69bb31d\n  - identifier: autorisaties-api\n    label: Open Zaak - Autorisaties\n    api_root: https://ontw-openzaak.dimpact.info.nl/autorisaties/api/v1/\n    api_type: ac\n    auth_type: zgw\n    client_id: zaak\n    secret: wRaVDs7NzKbRcz\nvng_api_common_credentials_config_enable: true\nvng_api_common_credentials:\n  items:\n    - identifier: zaak\n      secret: wRaVDs7NzKbRcz\n    - identifier: zac\n      secret: ERYe7BOTMRaLQcVECNhJEpdouuVDd6RD\n    - identifier: notificaties\n      secret: 9Ri4H6toPvyvsrtsjdp\n    - identifier: objecten\n      secret: qaKTjCHewaRXSWdGix3xG\n    - identifier: integratieteam\n      secret: 8IDlsFxbtqauJKwS4PI\nvng_api_common_applicaties_config_enable: true\nvng_api_common_applicaties:\n  items:\n    - uuid: 6bf5bfb4-e76b-469f-b993-4aedb832b61f\n      client_ids:\n        - zaak\n      heeft_alle_autorisaties: true\n      label: Zaak\n    - uuid: 4b305285-64c4-484a-8db4-2f66996d4760\n      client_ids:\n        - zac\n      heeft_alle_autorisaties: true\n      label: Zaakafhandelcomponent\n    - uuid: c5989254-922d-43f9-a32a-3fa2a44f6230\n      client_ids:\n        - notificaties\n      heeft_alle_autorisaties: true\n      label: Notificaties\n    - uuid: d0782c50-9cc2-4aa3-86e6-03e1cfb29813\n      client_ids:\n        - objecten\n      heeft_alle_autorisaties: true\n      label: Objecten\n    - uuid: 3595eece-ba8a-47c9-a388-496086c9677f\n      client_ids:\n        - integratieteam\n      heeft_alle_autorisaties: true\n      label: Integratieteam\nnotifications_config_enable: true\nnotifications_config:\n  notifications_api_service_identifier: notificaties-api\n  notification_delivery_max_retries: 5\n  notification_delivery_retry_backoff: 3\n  notification_delivery_retry_backoff_max: 48\nsites_config_enable: true\nsites_config:\n  items:\n  - domain: ontw-openzaak.dimpact.info.nl\n    name: \"Open Zaak op Ontwikkelomgeving INFO\"\n"
+settings:
+  allowedHosts: ontw-openzaak.dimpact.info.nl,openzaak-nginx.podiumd.svc.cluster.local
+  email:
+    host: mail.enschede.nl
+    defaultFrom: "noreply@info.nl"
+  database:
+    name: openzaak
+    username: openzaak
+    password: "7kGdVlRrh5qxvzAjPbFqbDLsHLS2Cetm"
+  secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+  isHttps: true
+  disable2fa: true
+  sentry:
+    dsn: "https://3dc6dcc6b98241d4b9b39e8f4debd29d@sentry.maykinmedia.nl/351"
+  environment: dimpact-info-ontw
+  numProxies: 2
+image:
+  repository: acrprodmgmt.azurecr.io/openzaak
+nodeSelector:
+  agentpool: userpool
+persistence:
+  existingClaim: "placeholder"
+  size: "PLACEHOLDER"
+persistentVolume:
+  volumeAttributeShareName: "PLACEHOLDER"
+nginx:
+  image:
+    repository: acrprodmgmt.azurecr.io/nginx
+    tag: stable
+redis:
+  image:
+    repository: redis
+  master:
+    nodeSelector:
+      agentpool: userpool
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: managed-csi

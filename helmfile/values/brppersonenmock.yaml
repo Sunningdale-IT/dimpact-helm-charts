@@ -1,0 +1,5 @@
+enabled: true
+image:
+  repository: acrprodmgmt.azurecr.io/personen-mock
+nodeSelector:
+  agentpool: userpool

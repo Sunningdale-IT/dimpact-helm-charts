@@ -1,0 +1,146 @@
+enabled: true
+initContainer:
+  image:
+    repository: acrprodmgmt.azurecr.io/curl
+    tag: "8.12.1"
+image:
+  repository: acrprodmgmt.azurecr.io/zac
+nodeSelector:
+  agentpool: userpool
+auth:
+  server: https://ontw-keycloak.dimpact.info.nl
+  realm: podiumd
+  clientId: zac
+  secret: "2QcV8hhTBmek5G4ZdL7kYaywjO8Pzpqm"
+bagApi:
+  url: http://api-proxy/lvbag/individuelebevragingen/v2/
+  apiKey: "dummy"
+brpApi:
+  url: http://api-proxy/haalcentraal/api/brp/
+  apiKey: "dummy"
+kvkApi:
+  url: http://api-proxy/
+  apiKey: "dummy"
+catalogusDomein: ALG
+contextUrl: https://ontw-zac.dimpact.info.nl
+db:
+  host: psql-ontw-info.postgres.database.azure.com
+  name: zac
+  user: zac
+  password: "IbE8EV8GT5dwSqIigeI86Kb1RPfOzE00"
+gemeente:
+  code: "007"
+  naam: "Info"
+  mail: "noreply@info.nl"
+keycloak:
+  adminClient:
+    id: zac-admin-client
+    secret: "vI6nXQnt0QlLyigRueghKUPCGscgV003"
+klantinteractiesApi:
+  url: "https://ontw-openklant.dimpact.info.nl"
+  token: openklanttoken
+mail:
+  smtp:
+    server: "mail.enschede.nl"
+    port: "587"
+    username: "dummy"
+    password: "dummy"
+maxFileSizeMB: 150
+office_converter:
+  nodeSelector:
+    agentpool: userpool
+  image:
+    repository: acrprodmgmt.azurecr.io/office-converter
+    tag: "1.7.1"
+nginx:
+  enabled: true
+  useXForwardedHost: true
+  allowedHosts: ontw-zac.dimpact.info.nl,zac.podiumd
+  nodeSelector:
+    agentpool: userpool
+  client_max_body_size: 150M
+  image:
+    repository: acrprodmgmt.azurecr.io/nginx
+    tag: "1.27.3"
+notificationsSecretKey: "Rk1vbyXy6T1Vtr2u8Gsm1GceCDOQ3Zt4"
+objectenApi:
+  url: "https://ontw-objecten.dimpact.info.nl"
+  token: "cd63e158f3aca276ef284e3033d020a22899c728"
+objecttypenApi:
+  url: "https://ontw-objecttypen.dimpact.info.nl"
+  token: "31c25ba1d8c20d74d30017c7f8808d649a8fabbb"
+openForms:
+  url: "https://ontw-formulier.dimpact.info.nl"
+organizations:
+  bron:
+    rsin: "856683164"
+  verantwoordelijke:
+    rsin: "856683164"
+smartDocuments:
+  enabled: false
+  url: ""
+  authentication: ""
+  fixedUserName: ""
+opa:
+  nodeSelector:
+    agentpool: userpool
+  image:
+    repository: acrprodmgmt.azurecr.io/opa
+    tag: "1.4.2-static"
+solr-operator:
+  enabled: true
+  nodeSelector:
+    agentpool: userpool
+  image:
+    repository: acrprodmgmt.azurecr.io/solr-operator
+    tag: "v0.8.1"
+  solr:
+    enabled: true
+    busyBoxImage:
+      repository: acrprodmgmt.azurecr.io/busybox
+      tag: "1.28.0-glibc"
+    nodeSelector:
+      agentpool: userpool
+    image:
+      repository: acrprodmgmt.azurecr.io/solr
+      tag: "9.6.1"
+    javaMem: -Xms512m -Xmx768m
+    jobs:
+      createZacCore: true
+      image:
+        repository: acrprodmgmt.azurecr.io/curl
+        tag: "8.12.1"
+      nodeSelector:
+        agentpool: userpool
+  watchNamespaces: "podiumd"
+  zookeeper-operator:
+    nodeSelector:
+      agentpool: userpool
+    hooks:
+      image:
+        repository: acrprodmgmt.azurecr.io/k8s-kubectl
+        tag: "v1.23.14"
+    image:
+      repository: acrprodmgmt.azurecr.io/zookeeper-operator
+      tag: "0.2.15"
+    watchNamespace: "podiumd"
+    zookeeper:
+      replicas: 1
+      nodeSelector:
+        agentpool: userpool
+      image:
+        repository: acrprodmgmt.azurecr.io/zookeeper
+        tag: "0.2.15"
+zgwApis:
+  url: "https://ontw-openzaak.dimpact.info.nl"
+  urlExtern: "https://ontw-openzaak.dimpact.info.nl"
+  clientId: zac
+  secret: "ERYe7BOTMRaLQcVECNhJEpdouuVDd6RD"
+signaleringen:
+  nodeSelector:
+    agentpool: userpool
+  image:
+    repository: acrprodmgmt.azurecr.io/curl
+    tag: "8.12.1"
+  sendZaakSignaleringenSchedule: "0 8 * * 1-5" # OTA waarde
+  deleteOldSignaleringenSchedule: "30 8 * * 1-5" # OTA waarde

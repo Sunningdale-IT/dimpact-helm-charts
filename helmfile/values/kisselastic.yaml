@@ -1,0 +1,15 @@
+kibanaDomain: contact-kb-http.podiumd.svc.cluster.local
+nodeSelector:
+  agentpool: userpool
+eck-operator:
+  managedNamespaces:
+    - podiumd
+  image:
+    repository: acrprodmgmt.azurecr.io/eck-operator
+    tag: "2.9.0"
+  nodeSelector:
+    agentpool: userpool
+  config:
+    containerRegistry: acrprodmgmt.azurecr.io
+    nodeSelector:
+      agentpool: userpool
