@@ -143,6 +143,10 @@ openformulieren:
 
 openzaak:
   enabled: false
+  configuration:
+    enabled: false
+  create_required_catalogi_job:
+    enabled: false
 
 opennotificaties:
   enabled: false
@@ -152,6 +156,10 @@ objecten:
 
 objecttypen:
   enabled: false
+  configuration:
+    enabled: false
+  create_required_objecttypen_job:
+    enabled: false
 
 openarchiefbeheer:
   enabled: false
