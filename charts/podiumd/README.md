@@ -1,5 +1,140 @@
 # PodiumD
 
+## ⚠️ Component Deployment Strategy
+
+To address Kubernetes Secret size limits (1MB), this chart now deploys only **Keycloak** by default. Other components are disabled and must be enabled individually.
+
+### Quick Start
+
+1. **Deploy with only Keycloak (default)**:
+   ```bash
+   helm install podiumd charts/podiumd
+   ```
+
+2. **Enable additional components** by setting `enabled: true` in your values.yaml:
+   ```yaml
+   # Example: Enable Open Zaak
+   openzaak:
+     enabled: true
+   
+   # Example: Enable Open Formulieren  
+   openformulieren:
+     enabled: true
+   ```
+
+3. **Uncomment full configurations** in values.yaml for enabled components (see instructions below).
+
+### Available Components
+
+| Component | Chart Dependency | Default State |
+|-----------|------------------|---------------|
+| keycloak | ✅ Enabled | Active |
+| infinispan | ❌ Disabled | Commented out |
+| openzaak | ❌ Disabled | Commented out |
+| opennotificaties | ❌ Disabled | Commented out |
+| objecten | ❌ Disabled | Commented out |
+| objecttypen | ❌ Disabled | Commented out |
+| openarchiefbeheer | ❌ Disabled | Commented out |
+| openklant | ❌ Disabled | Commented out |
+| openformulieren | ❌ Disabled | Commented out |
+| openinwoner | ❌ Disabled | Commented out |
+| zac | ❌ Disabled | Commented out |
+| kiss | ❌ Disabled | Commented out |
+| clamav | ❌ Disabled | Commented out |
+| brppersonenmock | ❌ Disabled | Commented out |
+
+### Enabling Individual Components
+
+To enable a component:
+
+1. **Uncomment the dependency** in `Chart.yaml`:
+   ```yaml
+   dependencies:
+     # Uncomment the component you want to enable
+     - name: openzaak
+       version: 1.9.0
+       repository: "@maykinmedia"
+       condition: openzaak.enabled
+   ```
+
+2. **Set enabled: true** in your values.yaml:
+   ```yaml
+   openzaak:
+     enabled: true
+   ```
+
+3. **Uncomment the full configuration** in values.yaml (search for `# openzaak:` and uncomment the entire section)
+
+4. **Update dependencies and deploy**:
+   ```bash
+   helm dependency update charts/podiumd
+   helm upgrade podiumd charts/podiumd
+   ```
+
+### Component Groups for Staged Deployment
+
+We recommend enabling components in these logical groups:
+
+#### Infrastructure Group
+```yaml
+# Core infrastructure services
+infinispan:
+  enabled: true
+clamav:
+  enabled: true
+```
+
+#### Case Management Group  
+```yaml
+# Case handling services
+openzaak:
+  enabled: true
+opennotificaties:
+  enabled: true
+zac:
+  enabled: true
+```
+
+#### Objects & Data Group
+```yaml
+# Object and data management
+objecten:
+  enabled: true
+objecttypen:
+  enabled: true
+openarchiefbeheer:
+  enabled: true
+openklant:
+  enabled: true
+```
+
+#### Forms & Portal Group
+```yaml
+# User-facing services
+openformulieren:
+  enabled: true
+openinwoner:
+  enabled: true
+```
+
+#### Testing & Development
+```yaml
+# Development and testing tools
+brppersonenmock:
+  enabled: true
+kiss:
+  enabled: true
+```
+
+### Migration from Full Deployment
+
+If migrating from a previous full PodiumD deployment:
+
+1. **Backup your current values.yaml**
+2. **Enable components gradually** using the groups above
+3. **Monitor Secret sizes**: `kubectl get secrets -n <namespace> -o custom-columns=NAME:.metadata.name,SIZE:.data --no-headers | grep podiumd`
+4. **Stay under 1MB limit** per component (check with `echo "<secret_size>" | base64 -d | wc -c`)
+
 ## PodiumD versions
 
 ### [3.3.2](https://github.com/Dimpact-Samenwerking/helm-charts/releases/tag/podiumd-3.3.2)

@@ -1,0 +1,46 @@
+#
+# ClamAV Configuration for PodiumD
+#
+# This template provides ClamAV antivirus scanning configuration.
+#
+
+{{ $global := .Values.global | default dict }}
+{{ $clamav := .Values.clamav | default dict }}
+
+enabled: {{ $clamav.enabled | default true }}
+
+image:
+  registry: {{ $global.imageRegistry | default "" }}
+
+resources:
+  limits:
+    cpu: {{ .Values.resources.limits.cpu | default "1000m" }}
+    memory: {{ .Values.resources.limits.memory | default "2Gi" }}
+  requests:
+    cpu: {{ .Values.resources.requests.cpu | default "100m" }}
+    memory: {{ .Values.resources.requests.memory | default "512Mi" }}
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations: []
+
+affinity: {}
+
+# Security context
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true

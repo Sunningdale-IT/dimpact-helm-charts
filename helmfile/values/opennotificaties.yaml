@@ -1,0 +1,173 @@
+configuration:
+  enabled: true
+  http_request_job:
+    enabled: false
+  initContainer:
+    enabled: false
+  job:
+    enabled: true
+  oidcUrl: "https://ontw-notificaties.dimpact.info.nl"
+  oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+  data: |
+    oidc_db_config_enable: true
+    oidc_db_config_admin_auth:
+      items:
+        - identifier: admin-oidc
+          enabled: true
+          claim_mapping:
+            email:
+              - email
+            first_name:
+              - given_name
+            last_name:
+              - family_name
+          username_claim:
+            - preferred_username
+          groups_claim:
+            - groups
+          superuser_group_names:
+            - "administrators"
+          oidc_rp_scopes_list:
+            - openid
+            - email
+            - profile
+          endpoint_config:
+            oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/
+          userinfo_claims_source: id_token
+          oidc_rp_client_id: opennotificaties
+          oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7
+          oidc_rp_sign_algo: RS256
+          make_users_staff: true
+          sync_groups: true
+    sites_config_enable: true
+    sites_config:
+      items:
+        - domain: ontw-notificaties.dimpact.info.nl
+          name: "Open Notificaties op Ontwikkelomgeving INFO"
+    zgw_consumers_config_enable: true
+    zgw_consumers:
+      services:
+        - identifier: notificaties-api
+          label: Notificaties API
+          api_root: https://ontw-notificaties.dimpact.info.nl/api/v1/
+          api_type: nrc
+          auth_type: zgw
+          client_id: notificaties
+          secret: 9Ri4H6toPvyvsrtsjdp
+        - identifier: autorisaties-api
+          label: Open Zaak - Autorisaties API
+          api_root: https://ontw-openzaak.dimpact.info.nl/autorisaties/api/v1/
+          api_type: ac
+          auth_type: zgw
+          client_id: notificaties
+          secret: 9Ri4H6toPvyvsrtsjdp
+    vng_api_common_credentials_config_enable: true
+    vng_api_common_credentials:
+      items:
+        - identifier: zaak
+          secret: wRaVDs7NzKbRcz
+        - identifier: notificaties
+          secret: 9Ri4H6toPvyvsrtsjdp
+        - identifier: objecten
+          secret: qaKTjCHewaRXSWdGix3xG
+    autorisaties_api_config_enable: true
+    autorisaties_api:
+      authorizations_api_service_identifier: autorisaties-api
+    notifications_config_enable: true
+    notifications_config:
+      notifications_api_service_identifier: notificaties-api
+      notification_delivery_max_retries: 5
+      notification_delivery_retry_backoff: 3
+      notification_delivery_retry_backoff_max: 48
+    notifications_kanalen_config_enable: true
+    notifications_kanalen_config:
+      items:
+      - naam: autorisaties
+        filters:
+        - autorisaties
+      - naam: besluittypen
+        filters:
+        - catalogus
+      - naam: informatieobjecttypen
+        filters:
+        - catalogus
+      - naam: zaaktypen
+        filters:
+        - catalogus
+      - naam: zaken
+        filters:
+        - bronorganisatie
+        - zaaktype
+        - vertrouwelijkheidaanduiding
+      - naam: documenten
+        filters:
+        - bronorganisatie
+        - informatieobjecttype
+        - vertrouwelijkheidaanduiding
+      - naam: besluiten
+        filters:
+        - verantwoordelijke_organisatie
+        - besluittype
+      - naam: objecten
+        filters:
+        - object
+        - object_type
+    notifications_abonnementen_config_enable: true
+    notifications_abonnementen_config:
+      items:
+        - uuid: b5d5abcb-b95c-4367-913e-6b90b28b9d8b
+          callback_url: https://ontw-zac.dimpact.info.nl/rest/notificaties
+          auth: Rk1vbyXy6T1Vtr2u8Gsm1GceCDOQ3Zt4
+          kanalen:
+            - naam: objecten
+            - naam: zaken
+            - naam: documenten
+            - naam: besluiten
+            - naam: zaaktypen
+        - uuid: e6983a51-0315-4ed3-b991-b54eb363bec9
+          callback_url: https://ontw-notificaties.dimpact.info.nl/api/v1/callbacks
+          auth: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJub3RpZmljYXRpZXMiLCJpYXQiOjE3Mzk4ODcwOTIsImNsaWVudF9pZCI6Im5vdGlmaWNhdGllcyIsInVzZXJfaWQiOiIiLCJ1c2VyX3JlcHJlc2VudGF0aW9uIjoiIn0.1nL3fqoEkXC1hvp6KPo6fua9oZWxaznbw1qANCVJnoc
+          kanalen:
+            - naam: autorisaties
+settings:
+  allowedHosts: ontw-notificaties.dimpact.info.nl,opennotificaties-nginx.podiumd.svc.cluster.local
+  database:
+    name: opennotificaties
+    username: opennotificaties
+    password: "C8MKIeDqofwFm0YwiL48JSzN9cFyllfo"
+  secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+  email:
+    host: mail.enschede.nl
+    defaultFrom: "noreply@info.nl"
+  isHttps: true
+  disable2fa: true
+  sentry:
+    dsn: "https://3ed5e2a0c17b4e86bbe32e00774a75c2@sentry.maykinmedia.nl/352"
+  environment: dimpact-info-ontw
+  numProxies: 2
+image:
+  repository: acrprodmgmt.azurecr.io/opennotificaties
+nodeSelector:
+  agentpool: userpool
+persistence:
+  existingClaim: "placeholder"
+  size: "PLACEHOLDER"
+persistentVolume:
+  volumeAttributeShareName: "PLACEHOLDER"
+rabbitmq:
+  auth:
+    password: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+  image:
+    repository: rabbitmq
+  nodeSelector:
+    agentpool: userpool
+redis:
+  image:
+    repository: redis
+  master:
+    nodeSelector:
+      agentpool: userpool
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: managed-csi

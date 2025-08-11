@@ -56,6 +56,7 @@ data:
         defaultAction: "true"
         alias: CONFIGURE_TOTP
     clients:
+{{- if .Values.openzaak.enabled }}
       - clientId: openzaak
         name: Open Zaak
         enabled: true
@@ -93,6 +94,8 @@ data:
               claim.name: "groups"
               jsonType.label: "String"
               usermodel.clientRoleMapping.clientId: "openzaak"
+{{- end }}
+{{- if .Values.openarchiefbeheer.enabled }}
       - clientId: abc
         name: Open Archiefbeheer
         enabled: true
@@ -130,6 +133,8 @@ data:
               claim.name: "groups"
               jsonType.label: "String"
               usermodel.clientRoleMapping.clientId: "abc"
+{{- end }}
+{{- if and .Values.keycloak.config.clients .Values.keycloak.config.clients.monitoring }}
       - clientId: monitoring
         name: {{ .Values.keycloak.config.clients.monitoring.name|quote }}
         enabled: {{ .Values.keycloak.config.clients.monitoring.enabled }}
@@ -162,6 +167,8 @@ data:
             consentRequired: false
             config:
               role: "monitoring.viewer"
+{{- end }}
+{{- if .Values.opennotificaties.enabled }}
       - clientId: opennotificaties
         name: Open Notificaties
         enabled: true
@@ -199,6 +206,8 @@ data:
               claim.name: "groups"
               jsonType.label: "String"
               usermodel.clientRoleMapping.clientId: "opennotificaties"
+{{- end }}
+{{- if .Values.objecten.enabled }}
       - clientId: objecten
         name: Objecten
         enabled: true
@@ -236,6 +245,8 @@ data:
               claim.name: "groups"
               jsonType.label: "String"
               usermodel.clientRoleMapping.clientId: "objecten"
+{{- end }}
+{{- if .Values.objecttypen.enabled }}
       - clientId: objecttypen
         name: Objecttypen
         enabled: true
@@ -273,6 +284,8 @@ data:
               claim.name: "groups"
               jsonType.label: "String"
               usermodel.clientRoleMapping.clientId: "objecttypen"
+{{- end }}
+{{- if .Values.openklant.enabled }}
       - clientId: openklant
         name: Open Klant
         enabled: true
@@ -310,6 +323,8 @@ data:
               claim.name: "groups"
               jsonType.label: "String"
               usermodel.clientRoleMapping.clientId: "openklant"
+{{- end }}
+{{- if .Values.openformulieren.enabled }}
       - clientId: openformulieren
         name: Open Formulieren
         enabled: true
@@ -347,6 +362,8 @@ data:
               claim.name: "groups"
               jsonType.label: "String"
               usermodel.clientRoleMapping.clientId: "openformulieren"
+{{- end }}
+{{- if .Values.openinwoner.enabled }}
       - clientId: openinwoner
         name: Open Inwoner
         enabled: true
@@ -384,6 +401,8 @@ data:
               claim.name: "groups"
               jsonType.label: "String"
               usermodel.clientRoleMapping.clientId: "openinwoner"
+{{- end }}
+{{- if .Values.kiss.enabled }}
       - clientId: kiss
         name: Kiss
         enabled: true
@@ -418,6 +437,8 @@ data:
               access.token.claim: true
               claim.name: samaccountname
               jsonType.label: String
+{{- end }}
+{{- if .Values.zac.enabled }}
       - clientId: {{ .Values.zac.auth.clientId }}
         name: Zaakafhandelcomponent
         enabled: true
@@ -497,11 +518,13 @@ data:
               access.token.claim: "true"
               claim.name: "client_id"
               jsonType.label: "String"
+{{- end }}
     clientScopes:
       - name: roles
         description: OpenID Connect scope for add user roles to the access token
         protocol: openid-connect
         protocolMappers:
+{{- if .Values.zac.enabled }}
           - config:
               access.token.claim: "true"
               claim.name: roles
@@ -516,6 +539,7 @@ data:
             name: zac roles
             protocol: openid-connect
             protocolMapper: oidc-usermodel-client-role-mapper
+{{- end }}
           - config:
               access.token.claim: "true"
               introspection.token.claim: "true"
@@ -546,6 +570,7 @@ data:
             protocol: openid-connect
             protocolMapper: oidc-usermodel-realm-role-mapper
     users:
+{{- if .Values.zac.enabled }}
       - username: "service-account-{{ .Values.zac.keycloak.adminClient.id }}"
         enabled: "true"
         totp: "false"
@@ -555,10 +580,13 @@ data:
             - "view-users"
           account:
             - "view-groups"
+{{- end }}
+{{- if and .Values.keycloak.config.clients .Values.keycloak.config.clients.monitoring }}
       - username: "service-account-monitoring"
         enabled: "true"
         totp: "false"
         serviceAccountClientId: "monitoring"
+{{- end }}
 
     smtpServer:
       starttls: {{ .Values.keycloak.config.smtp.starttls }}
@@ -582,10 +610,12 @@ data:
       client:
         abc:
           - name: administrators
+{{- if and .Values.keycloak.config.clients .Values.keycloak.config.clients.monitoring }}
         monitoring:
           - name: admin
           - name: editor
           - name: viewer
+{{- end }}
         openklant:
           - name: administrators
         objecten:
@@ -603,6 +633,7 @@ data:
         kiss:
           - name: Redacteur
           - name: Klantcontactmedewerker
+{{- if .Values.zac.enabled }}
         zac:
           - name: zaakafhandelcomponent_user
           - name: behandelaar
@@ -611,6 +642,7 @@ data:
           - name: raadpleger
           - name: recordmanager
           - name: domein_elk_zaaktype
+{{- end }}
     {{- end }}
     {{- if not .Values.keycloak.config.skipGroups }}
     groups:
@@ -622,6 +654,7 @@ data:
         realmRoles:
           - "podiumd-admin"
         clientRoles:
+{{- if .Values.zac.enabled }}
           zac:
             - "recordmanager"
             - "zaakafhandelcomponent_user"
@@ -630,10 +663,13 @@ data:
             - "coordinator"
             - "raadpleger"
             - "behandelaar"
+{{- end }}
           abc:
             - "administrators"
+{{- if and .Values.keycloak.config.clients .Values.keycloak.config.clients.monitoring }}
           monitoring:
             - "admin"
+{{- end }}
           objecten:
             - "administrators"
           objecttypen:
@@ -654,29 +690,34 @@ data:
           description:
             - "Behandelaars"
         clientRoles:
+{{- if .Values.zac.enabled }}
           zac:
             - "domein_elk_zaaktype"
             - "zaakafhandelcomponent_user"
             - "behandelaar"
             - "raadpleger"
+{{- end }}
       - name: coordinators
         path: /coordinators
         attributes:
           description:
             - "Coordinators"
         clientRoles:
+{{- if .Values.zac.enabled }}
           zac:
             - "zaakafhandelcomponent_user"
             - "domein_elk_zaaktype"
             - "coordinator"
             - "raadpleger"
             - "behandelaar"
+{{- end }}
       - name: recordmanagers
         path: /recordmanagers
         attributes:
           description:
             - "Recordmanagers"
         clientRoles:
+{{- if .Values.zac.enabled }}
           zac:
             - "zaakafhandelcomponent_user"
             - "domein_elk_zaaktype"
@@ -684,12 +725,14 @@ data:
             - "behandelaar"
             - "raadpleger"
             - "recordmanager"
+{{- end }}
       - name: beheerders
         path: /beheerders
         attributes:
           description:
             - "Beheerders"
         clientRoles:
+{{- if .Values.zac.enabled }}
           zac:
             - "zaakafhandelcomponent_user"
             - "domein_elk_zaaktype"
@@ -698,16 +741,19 @@ data:
             - "beheerder"
             - "raadpleger"
             - "recordmanager"
+{{- end }}
       - name: raadplegers
         path: /raadplegers
         attributes:
           description:
             - "Raadplegers"
         clientRoles:
+{{- if .Values.zac.enabled }}
           zac:
             - "zaakafhandelcomponent_user"
             - "domein_elk_zaaktype"
             - "raadpleger"
+{{- end }}
     {{- end }}
     requiredActions:
       - name: "Configure OTP"

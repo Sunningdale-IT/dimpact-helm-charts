@@ -1,0 +1,57 @@
+configuration:
+  enabled: true
+  demo:
+    enabled: false
+  oidcUrl: "https://ontw-objecten.dimpact.info.nl"
+  oidcSecret: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+  job:
+    enabled: true
+  initContainer:
+    enabled: false
+  data: "oidc_db_config_enable: true\noidc_db_config_admin_auth:\n  items:\n    - identifier: admin-oidc\n      enabled: true\n      claim_mapping:\n        email:\n          - email\n        first_name:\n          - given_name\n        last_name:\n          - family_name\n      username_claim:\n        - preferred_username\n      groups_claim:\n        - groups\n      superuser_group_names:\n        - \"administrators\"\n      oidc_rp_scopes_list:\n        - openid\n        - email\n        - profile\n      endpoint_config:\n        oidc_op_discovery_endpoint: https://ontw-keycloak.dimpact.info.nl/realms/podiumd/\n      userinfo_claims_source: id_token\n      oidc_rp_client_id: objecten\n      oidc_rp_client_secret: kF4QyorphT7XLwQfVoMynAUPmysJBZD7\n      oidc_rp_sign_algo: RS256\n      make_users_staff: true\n      sync_groups: true\nzgw_consumers_config_enable: true\nzgw_consumers:\n  services:\n    - identifier: objecttypen-api\n      label: Objecttypen API\n      api_root: https://ontw-objecttypen.dimpact.info.nl/api/v2/\n      api_type: orc\n      auth_type: api_key\n      header_key: Authorization\n      header_value: Token 6a5b7aed0b1be90a80696791bfb34a01e385b0f2\n    - identifier: notificaties-api\n      label: Notificaties API\n      api_root: https://ontw-notificaties.dimpact.info.nl/api/v1/\n      api_type: nrc\n      auth_type: zgw\n      client_id: notificaties\n      secret: qaKTjCHewaRXSWdGix3xG\n    - identifier: autorisaties-api\n      label: Open Zaak - Autorisaties API\n      api_root: https://ontw-openzaak.dimpact.info.nl/autorisaties/api/v1/\n      api_type: ac\n      auth_type: zgw\n      client_id: objecten\n      secret: IjhZjJwGZkINC46uky\nobjecttypes_config_enable: true\nobjecttypes:\n  items:\n    - uuid: 90984726-2692-49d8-8f9d-742075cb761d\n      name: Medewerker\n      service_identifier: objecttypen-api\n    - uuid: c8d301f9-80b8-4575-8b29-3e9431f92994\n      name: Afdeling\n      service_identifier: objecttypen-api\n    - uuid: cbec27ac-157b-490b-b586-9e8a8f5bbb85\n      name: Groep\n      service_identifier: objecttypen-api\n    - uuid: 72240cd6-29bb-4a66-b1c3-ab6589a39a22\n      name: InterneTaak\n      service_identifier: objecttypen-api\n    - uuid: e4d2e353-80ea-4962-8276-920d59a3e8de\n      name: Kennisartikel\n      service_identifier: objecttypen-api\n    - uuid: 6a0d8f9d-f7e2-4e57-a91b-01656968a62d\n      name: VAC\n      service_identifier: objecttypen-api\n    - uuid: 11a5f7fd-013e-4e29-9cd1-738249fc3479\n      name: Productaanvraag-Dimpact\n      service_identifier: objecttypen-api\n    - uuid: 902164b3-3af8-4e41-836e-cf33ee060ea8\n      name: Productaanvraag-eSuite\n      service_identifier: objecttypen-api\nnotifications_config_enable: true\nnotifications_config:\n  notifications_api_service_identifier: notificaties-api\n  notification_delivery_max_retries: 5\n  notification_delivery_retry_backoff: 3\n  notification_delivery_retry_backoff_max: 48\ntokenauth_config_enable: true\ntokenauth:\n  items:\n    - identifier: integratieteam\n      token: 88d54b7d8500175894ca59d5e0d3b06fe69bb31d\n      contact_person: Integratieteam\n      email: servicedesk@dimpact.nl\n      is_superuser: true\n    - identifier: zaak\n      token: cd63e158f3aca276ef284e3033d020a22899c728\n      contact_person: Dimpact\n      email: servicedesk@dimpact.nl\n      permissions:\n        - object_type: 11a5f7fd-013e-4e29-9cd1-738249fc3479\n          mode: read_and_write\n    - identifier: contact\n      token: 0de4b0a6679080f83bb3e1e9730fa710ee1129f6\n      contact_person: Dimpact\n      email: servicedesk@dimpact.nl\n      application: \"Contact\"\n      permissions:\n        - object_type: 90984726-2692-49d8-8f9d-742075cb761d\n          mode: read_and_write\n        - object_type: c8d301f9-80b8-4575-8b29-3e9431f92994\n          mode: read_and_write\n        - object_type: cbec27ac-157b-490b-b586-9e8a8f5bbb85\n          mode: read_and_write\n        - object_type: 72240cd6-29bb-4a66-b1c3-ab6589a39a22\n          mode: read_and_write\n        - object_type: e4d2e353-80ea-4962-8276-920d59a3e8de\n          mode: read_and_write\n        - object_type: 6a0d8f9d-f7e2-4e57-a91b-01656968a62d\n          mode: read_and_write\n    - identifier: esuite\n      token: 7ab44560519588c61c33a22c52131c208d959cdc\n      contact_person: Dimpact\n      email: servicedesk@dimpact.nl\n      application: \"e-Suite\"\n      permissions: \n        - object_type: 90984726-2692-49d8-8f9d-742075cb761d\n          mode: read_and_write\n        - object_type: c8d301f9-80b8-4575-8b29-3e9431f92994\n          mode: read_and_write\n        - object_type: cbec27ac-157b-490b-b586-9e8a8f5bbb85\n          mode: read_and_write\n        - object_type: 6a0d8f9d-f7e2-4e57-a91b-01656968a62d\n          mode: read_only\n        - object_type: 902164b3-3af8-4e41-836e-cf33ee060ea8\n          mode: read_and_write\n    - identifier: formulier\n      token: dbac032684e7cac6ccad8d5b6fe19c11e502ed54\n      contact_person: Dimpact\n      email: servicedesk@dimpact.nl\n      permissions:\n        - object_type: 11a5f7fd-013e-4e29-9cd1-738249fc3479\n          mode: read_and_write\nsites_config_enable: true\nsites_config:\n  items:\n  - domain: ontw-objecten.dimpact.info.nl\n    name: \"Objecten op Ontwikkelomgeving INFO\"\n"
+settings:
+  allowedHosts: ontw-objecten.dimpact.info.nl,objecten.podiumd.svc.cluster.local
+  database:
+    name: objecten
+    username: objecten
+    password: "sm5aSFLSUXWnEIqUtkLavQPJJXrbHBGu"
+  secretKey: "kF4QyorphT7XLwQfVoMynAUPmysJBZD7"
+  email:
+    host: mail.enschede.nl
+    defaultFrom: "noreply@info.nl"
+  isHttps: true
+  disable2fa: true
+  sentry:
+    dsn: "https://bd162cb1c9d041a98b438f0974902d20@sentry.maykinmedia.nl/355"
+  environment: dimpact-info-ontw
+image:
+  repository: acrprodmgmt.azurecr.io/objecten
+nodeSelector:
+  agentpool: userpool
+persistence:
+  existingClaim: "placeholder"
+  size: "PLACEHOLDER"
+persistentVolume:
+  volumeAttributeShareName: "PLACEHOLDER"
+worker:
+  livenessProbe:
+    exec:
+      command:
+        - /bin/bash
+        - -c
+        - celery inspect ping --destination celery@${HOSTNAME} | grep -q OK
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+redis:
+  image:
+    repository: redis
+  master:
+    nodeSelector:
+      agentpool: userpool
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: managed-csi

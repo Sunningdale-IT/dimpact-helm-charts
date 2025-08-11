@@ -1,0 +1,108 @@
+#
+# Default Environment Configuration for PodiumD
+#
+# This file contains the default configuration values that apply across all environments.
+# Environment-specific overrides can be found in development.yaml and production.yaml
+#
+
+# Default namespace for all releases
+namespace: podiumd
+
+# Component enablement flags (TEMPORARILY DISABLED - ONLY CLAMAV ENABLED)
+keycloak:
+  enabled: false
+
+clamav:
+  enabled: true
+
+infinispan:
+  enabled: false
+
+openzaak:
+  enabled: false
+
+opennotificaties:
+  enabled: false
+
+objecten:
+  enabled: false
+
+objecttypen:
+  enabled: false
+
+openarchiefbeheer:
+  enabled: false
+
+openklant:
+  enabled: false
+
+openformulieren:
+  enabled: false
+
+openinwoner:
+  enabled: false
+
+kisselastic:
+  enabled: false
+
+zac:
+  enabled: false
+
+brppersonenmock:
+  enabled: false
+
+# Global configuration (shared across all components)
+global:
+  configuration:
+    enabled: true
+    organization: "PodiumD Platform"
+    # These will be overridden in environment-specific files
+    openzaakAutorisatiesApi: ""
+    notificatiesApi: ""
+    notificatiesOpenzaakSecret: ""
+    openzaakNotificatiesSecret: ""
+    keycloakAdminUrl: ""
+    keycloakUrl: ""
+    keycloakHostname: ""
+    openzaakSecretKey: ""
+    openzaakDbPassword: ""
+    openzaakHostname: ""
+    opennotificatiesSecretKey: ""
+    opennotificatiesDbPassword: ""
+    opennotificatiesHostname: ""
+    azureTenantId: ""
+    azureClientSecret: ""
+    azureClientId: ""
+  secrets: false
+  settings:
+    databaseHost: ""
+  security:
+    allowInsecureImages: false
+  imageRegistry: ""
+
+# Ingress configuration
+ingress:
+  enabled: true
+  tls: false
+
+# Default resource configuration
+resources:
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+
+# Persistent volume configuration
+persistentVolume:
+  volumeAttributeResourceGroup: ""
+  nodeStageSecretRefName: ""
+  nodeStageSecretRefNamespace: ""
+
+# Service account configuration
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "podiumd"
+  automount: false

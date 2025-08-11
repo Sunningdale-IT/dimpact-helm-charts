@@ -1,0 +1,86 @@
+#
+# Keycloak Configuration for PodiumD
+#
+# This template extracts the Keycloak configuration from the original podiumd chart.
+# Environment-specific values are injected via Helmfile templating.
+#
+
+{{ $global := .Values.global | default dict }}
+{{ $keycloak := .Values.keycloak | default dict }}
+
+enabled: {{ $keycloak.enabled | default true }}
+
+auth:
+  adminUser: admin
+  adminPassword: {{ $global.configuration.openzaakNotificatiesSecret | default "CHANGEME" | quote }}
+
+cache:
+  enabled: true
+  stackName: kubernetes
+
+config:
+  adminFrontendUrl: {{ $global.configuration.keycloakAdminUrl | default "https://keycloak-admin.example.com" }}
+  adminIdentityProviders:
+    identityProviders:
+      - alias: "oidc-admin"
+        displayName: "PodiumD admin"
+        providerId: "oidc"
+        enabled: true
+        updateProfileFirstLoginMode: "on"
+        config:
+          tokenUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+          jwksUrl: "https://login.microsoftonline.com/organizations/discovery/v2.0/keys"
+          issuer: "https://login.microsoftonline.com/{{ $global.configuration.azureTenantId | default "TENANT_ID" }}/v2.0"
+          clientSecret: {{ $global.configuration.azureClientSecret | default "SECRETPLACEHOLDER" | quote }}
+          clientId: {{ $global.configuration.azureClientId | default "CLIENT_ID" | quote }}
+          syncMode: "FORCE"
+          userInfoUrl: "https://graph.microsoft.com/oidc/userinfo"
+          metadataDescriptorUrl: "https://login.microsoftonline.com/organizations/v2.0/.well-known/openid-configuration"
+          authorizationUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize"
+          logoutUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/logout"
+
+postgresql:
+  enabled: {{ ne $global.settings.databaseHost "" | ternary false true }}
+  {{- if ne $global.settings.databaseHost "" }}
+  primary:
+    service:
+      type: ExternalName
+      externalName: {{ $global.settings.databaseHost }}
+  {{- end }}
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hostname: {{ $global.configuration.keycloakHostname | default "keycloak.example.com" }}
+  {{- if and .Values.ingress (eq .Values.ingress.tls true) }}
+  tls: true
+  {{- end }}
+
+resources:
+  limits:
+    cpu: {{ .Values.resources.limits.cpu | default "1000m" }}
+    memory: {{ .Values.resources.limits.memory | default "2Gi" }}
+  requests:
+    cpu: {{ .Values.resources.requests.cpu | default "250m" }}
+    memory: {{ .Values.resources.requests.memory | default "512Mi" }}
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations: []
+
+affinity: {}
+
+# Security context
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true

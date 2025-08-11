@@ -1,0 +1,23 @@
+enabled: true
+images:
+  server: acrprodmgmt.azurecr.io/infinispan-server:15.1
+  initContainer: acrprodmgmt.azurecr.io/busybox:1.28.0-glibc
+nodeSelector:
+  agentpool: userpool
+deploy:
+  nameOverride: ispn
+  replicas: 2
+  container:
+    storage:
+      storageClassName: podiumd-standard
+  security:
+    secretName: ispn-generated-secret
+    monitor:
+      secret: "PLACEHOLDER"
+    batch: |
+      credentials add keystore -c password -p secret --path="internal-credentials.pfx"
+      user create keycloak -p yGzED95riA8hx5O2FID56aYI97UMSdbA -g deployer
+      user create admin -p Zr91kKDPsdqPrGjY81vMezHzSAj5m4SG -g admin
+  ssl:
+    endpointSecretName: "ispn-secret"
+    transportSecretName: "ispn-transport-secret"
