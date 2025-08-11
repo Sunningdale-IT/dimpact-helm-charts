@@ -5,7 +5,7 @@ kind: ConfigMap
 metadata:
   name: create-required-objecttypen-configmap
   labels:
-    {{- include "podiumd.labels" . | nindent 4 }}
+    {{- include "objecttypen.labels" . | nindent 4 }}
 data:
   AUTHORIZATION_TOKEN: {{ .Values.objecttypen.configuration.token | quote }}
   OBJECTTYPES_URL: {{ printf "%s%s" .Values.objecttypen.configuration.oidcUrl "/api/v2" | quote}}
@@ -96,7 +96,7 @@ kind: Job
 metadata:
   name: create-required-objecttypen-job
   labels:
-    {{- include "podiumd.labels" . | nindent 4 }}
+    {{- include "objecttypen.configLabels" . | nindent 4 }}
 spec:
   ttlSecondsAfterFinished: 600
   template:
