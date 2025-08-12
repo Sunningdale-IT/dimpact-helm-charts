@@ -1,0 +1,144 @@
+global:
+  configuration:
+    enabled: true
+    overwrite: true
+    organization: Example gemeente
+
+  settings:
+    databaseHost: ""
+
+  imageRegistry: ""
+
+persistentVolume:
+  volumeAttributeShareName: ""
+  volumeAttributeResourceGroup: ""
+  nodeStageSecretRefName: ""
+  nodeStageSecretRefNamespace: ""
+
+keycloak:
+  auth:
+    adminUser: admin
+    adminPassword: "changemenow"
+  # -- cache setting for keycloak, if there are multiple instances they will automatically form a cluster for the cache
+  cache:
+    enabled: true
+    stack: jdbc-ping
+  config:
+    adminFrontendUrl: https://keycloak-admin.example.nl
+    # Example configuration
+    #     identityProviders:
+    #     - alias: "oidc-admin-users"
+    #      displayName: "podiumd admin users"
+    #      providerId: "oidc"
+    #      enabled: true
+    #      updateProfileFirstLoginMode: "on"
+    #      config:
+    #        tokenUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+    #        jwksUrl: "https://login.microsoftonline.com/organizations/discovery/v2.0/keys"
+    #        issuer: "https://login.microsoftonline.com/{ tenantId }/v2.0"
+    #        clientSecret: "{ clientSecret }"
+    #        clientId: "{ clientId }"
+    #        syncMode: "FORCE"
+    #        userInfoUrl: "https://graph.microsoft.com/oidc/userinfo"
+    #        metadataDescriptorUrl: "https://login.microsoftonline.com/organizations/v2.0/.well-known/openid-configuration"
+    #        authorizationUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize"
+    #        logoutUrl: "https://login.microsoftonline.com/organizations/oauth2/v2.0/logout"
+    # -- identity providers for the admin realm (usually master)
+    #adminIdentityProviders: {}
+    # Example configuration
+    #    identityProviderMappers:
+    #    - name: "admin-group-mapper"
+    #      identityProviderAlias: "oidc-admin-users"
+    #      identityProviderMapper: "oidc-hardcoded-role-idp-mapper"
+    #      config:
+    #        syncMode: "FORCE"
+    #        role: "admin"
+    # -- identity provider mapper for the admin realm
+    #adminIdentityProviderMappers: {}
+    adminOtpEnabled: false
+    realm: podiumd
+    realmDisplayName: PodiumD
+    realmFrontendUrl: https://keycloak.example.nl
+    # Dont include the realmIdentityProviders and realmIdentityProviderMappers by default as it overwrites currently configured entra providers for multiple gemeentes
+    # realmIdentityProviders: {}
+    # realmIdentityProviderMappers: {}
+    skipGroups: true
+    skipRoles: true
+    smtp:
+      server: mail.example.nl
+      port: "587"
+      from: "Test"
+      fromDisplayName: "noreply@example.nl"
+      starttls: "true"
+      ssl: "false"
+    clients:
+      monitoring:
+        name: Monitoring (Grafana)
+        enabled: true
+        secret: "monitoring_secret"
+        oidcUrl: "https://monitoring.example.nl"
+  # -- required to activate infinispan
+  # customCaExistingSecret: ispn-secret
+  # -- enable keycloak by default
+  enabled: true
+  # keycloak image scanner only checks repo url/path not image hash
+  # the allowInsecureImages needs to be set to true when using an ACR
+  global:
+    security:
+      allowInsecureImages: true
+  # -- required to activate infinispan
+  #extraEnvVars: |
+  #  - name: KC_TRUSTSTORE_PATHS
+  #    value: "/opt/bitnami/keycloak/custom-ca"
+  # -- required to activate infinispan
+  #extraStartupArgs: "--cache-remote-host=ispn --cache-remote-port=11222 --cache-remote-username=keycloak --cache-remote-password=changemenow --log-level=INFO --spi-cache-embedded-default-site-name=ontw-dimp --features=multi-site --cache=ispn"
+  # image parameters for keycloak
+  # docker.io/bitnami/keycloak:26.3.1
+  image:
+    #registry: ""
+    #repository: keycloak
+    tag: 26.3.1
+  externalDatabase:
+    host: "postgres"
+    database: ""
+    user: ""
+    password: ""
+  fullnameOverride: keycloak
+  ingress:
+    hostnameStrict: true
+  keycloakConfigCli:
+    cleanupAfterFinished:
+      enabled: true
+      seconds: 600
+    enabled: true
+    existingConfigmap: podiumd-config
+    # image parameters for keycloak-config-cli
+    # docker.io/bitnami/keycloak-config-cli:6.4.0
+    image:
+      #registry: ""
+      #repository: keycloak-config-cli
+      # -- this must be a version of keycloak-config-cli that is compatible with the keycloak image tag
+      tag: 6.4.0
+  metrics:
+    enabled: true
+  pdb:
+    create: false
+  networkPolicy:
+    enabled: false
+  podSecurity:
+    enabled: false
+  postgres:
+    enabled: false
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+  serviceMonitor:
+    enabled: true
+  production: true
+  proxyHeaders: xforwarded
+  postgresql:
+    enabled: false
+  nameOverride: keycloak
+  extraEnvVarsCM: keycloak-extra-env-vars
