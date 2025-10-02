@@ -105,3 +105,55 @@ Usage:
         {{- tpl (.value | toYaml) .context }}
     {{- end }}
 {{- end -}}
+
+{{/*
+Fallback labels for objecttypen when subchart is disabled
+*/}}
+{{- define "objecttypen.labels" -}}
+helm.sh/chart: {{ include "podiumd.chart" . }}
+app.kubernetes.io/name: {{ include "podiumd.name" . }}-objecttypen
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Fallback config labels for objecttypen when subchart is disabled
+*/}}
+{{- define "objecttypen.configLabels" -}}
+helm.sh/chart: {{ include "podiumd.chart" . }}
+app.kubernetes.io/name: {{ include "podiumd.name" . }}-objecttypen-config
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Fallback labels for openzaak when subchart is disabled
+*/}}
+{{- define "openzaak.labels" -}}
+helm.sh/chart: {{ include "podiumd.chart" . }}
+app.kubernetes.io/name: {{ include "podiumd.name" . }}-openzaak
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Fallback config labels for openzaak when subchart is disabled
+*/}}
+{{- define "openzaak.configLabels" -}}
+helm.sh/chart: {{ include "podiumd.chart" . }}
+app.kubernetes.io/name: {{ include "podiumd.name" . }}-openzaak-config
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}

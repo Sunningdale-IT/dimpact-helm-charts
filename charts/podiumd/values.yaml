@@ -106,6 +106,25 @@ keycloak:
   fullnameOverride: keycloak
   ingress:
     hostnameStrict: true
+
+
+ingress:
+  enabled: true
+  ingressClassName: traefik    # Traefik ingress class
+  hostname: keycloak-admin.jim00.pd.test-rig.nl # Replace with your domain
+  pathType: ImplementationSpecific
+  path: /
+  annotations:
+    # Traefik & cert-manager integration
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"         # ClusterIssuer name
+    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+  tls: true
+  extraTls:
+    - hosts:
+        - keycloak-admin.jim00.pd.test-rig.nl
+      secretName: keycloak-tls # cert-manager will create this secret
+
+
   keycloakConfigCli:
     cleanupAfterFinished:
       enabled: true
